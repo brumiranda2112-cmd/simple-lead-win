@@ -131,7 +131,7 @@ export default function Dashboard() {
         {/* Bar - by area */}
         <Card className="border-border/50">
           <CardContent className="p-4">
-            <h3 className="text-sm font-semibold mb-4">Leads por Área</h3>
+            <h3 className="text-sm font-semibold mb-4">Leads por Serviço</h3>
             {areaData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={areaData}>

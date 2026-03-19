@@ -20,7 +20,7 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
     email: lead?.email || '',
     phone: lead?.phone || '',
     company: lead?.company || '',
-    area: lead?.area || 'civel' as LeadArea,
+    area: lead?.area || 'agentes_ia' as LeadArea,
     source: lead?.source || 'indicacao' as LeadSource,
     estimatedValue: lead?.estimatedValue || 0,
     status: lead?.status || 'novo' as LeadStatus,

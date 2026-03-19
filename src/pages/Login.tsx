@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Scale } from 'lucide-react';
+import logoKhronos from '@/assets/logo-khronos.png';
 
 export default function Login() {
   const { hasAccount, login, register } = useAuth();
@@ -29,11 +29,11 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border/50">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Scale className="w-7 h-7 text-primary" />
+          <div className="mx-auto">
+            <img src={logoKhronos} alt="KHRÓNOS AI" className="h-28 mx-auto" />
           </div>
           <div>
-            <CardTitle className="text-2xl">CRM Advocacia</CardTitle>
+            <CardTitle className="text-2xl">KHRÓNOS <span className="text-primary">CRM</span></CardTitle>
             <CardDescription className="mt-1">
               {isRegister ? 'Crie sua conta para começar' : 'Entre com suas credenciais'}
             </CardDescription>
