@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
 import { Users, UserCheck, TrendingUp, DollarSign, Target, Clock, Trophy, AlertTriangle } from 'lucide-react';
 
-const CHART_COLORS = ['hsl(217,91%,60%)', 'hsl(142,76%,36%)', 'hsl(45,93%,47%)', 'hsl(25,95%,53%)', 'hsl(262,83%,58%)', 'hsl(0,84%,60%)'];
+const CHART_COLORS = ['hsl(25,95%,53%)', 'hsl(142,76%,36%)', 'hsl(45,93%,47%)', 'hsl(217,91%,60%)', 'hsl(262,83%,58%)', 'hsl(0,84%,60%)'];
 
 export default function Dashboard() {
   const leads = storage.getLeads();
