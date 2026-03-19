@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
 import { Users, UserCheck, TrendingUp, DollarSign, Target, Clock, Trophy, AlertTriangle } from 'lucide-react';
 
-const CHART_COLORS = ['hsl(217,91%,60%)', 'hsl(142,76%,36%)', 'hsl(45,93%,47%)', 'hsl(25,95%,53%)', 'hsl(262,83%,58%)', 'hsl(0,84%,60%)'];
+const CHART_COLORS = ['hsl(25,95%,53%)', 'hsl(142,76%,36%)', 'hsl(45,93%,47%)', 'hsl(217,91%,60%)', 'hsl(262,83%,58%)', 'hsl(0,84%,60%)'];
 
 export default function Dashboard() {
   const leads = storage.getLeads();
@@ -131,14 +131,14 @@ export default function Dashboard() {
         {/* Bar - by area */}
         <Card className="border-border/50">
           <CardContent className="p-4">
-            <h3 className="text-sm font-semibold mb-4">Leads por Área</h3>
+            <h3 className="text-sm font-semibold mb-4">Leads por Serviço</h3>
             {areaData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={areaData}>
                   <XAxis dataKey="name" tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip {...tooltipStyle} />
-                  <Bar dataKey="value" fill="hsl(217,91%,60%)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="value" fill="hsl(25,95%,53%)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : <p className="text-center text-muted-foreground py-16">Sem dados</p>}
@@ -154,7 +154,7 @@ export default function Dashboard() {
                 <XAxis dataKey="month" tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <Tooltip {...tooltipStyle} />
-                <Line type="monotone" dataKey="created" name="Criados" stroke="hsl(217,91%,60%)" strokeWidth={2} dot={{ fill: 'hsl(217,91%,60%)' }} />
+                <Line type="monotone" dataKey="created" name="Criados" stroke="hsl(25,95%,53%)" strokeWidth={2} dot={{ fill: 'hsl(25,95%,53%)' }} />
                 <Line type="monotone" dataKey="won" name="Ganhos" stroke="hsl(142,76%,36%)" strokeWidth={2} dot={{ fill: 'hsl(142,76%,36%)' }} />
               </LineChart>
             </ResponsiveContainer>

@@ -2,6 +2,7 @@ import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut } from 'lucide-reac
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getOverdueTasks, getTodayTasks } from '@/lib/storage';
+import iconKhronos from '@/assets/icon-khronos.png';
 import {
   Sidebar,
   SidebarContent,
@@ -33,8 +34,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider">
-            {!collapsed && 'CRM Advocacia'}
+          <SidebarGroupLabel className="flex items-center gap-2 text-xs uppercase tracking-wider py-3">
+            <img src={iconKhronos} alt="K" className="h-7 w-7 rounded-md" />
+            {!collapsed && <span className="font-bold text-sm tracking-normal normal-case text-foreground">KHRÓNOS <span className="text-primary">CRM</span></span>}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
