@@ -138,7 +138,7 @@ export default function Dashboard() {
                   <XAxis dataKey="name" tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip {...tooltipStyle} />
-                  <Bar dataKey="value" fill="hsl(217,91%,60%)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="value" fill="hsl(25,95%,53%)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : <p className="text-center text-muted-foreground py-16">Sem dados</p>}
