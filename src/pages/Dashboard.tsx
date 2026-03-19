@@ -154,7 +154,7 @@ export default function Dashboard() {
                 <XAxis dataKey="month" tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <Tooltip {...tooltipStyle} />
-                <Line type="monotone" dataKey="created" name="Criados" stroke="hsl(217,91%,60%)" strokeWidth={2} dot={{ fill: 'hsl(217,91%,60%)' }} />
+                <Line type="monotone" dataKey="created" name="Criados" stroke="hsl(25,95%,53%)" strokeWidth={2} dot={{ fill: 'hsl(25,95%,53%)' }} />
                 <Line type="monotone" dataKey="won" name="Ganhos" stroke="hsl(142,76%,36%)" strokeWidth={2} dot={{ fill: 'hsl(142,76%,36%)' }} />
               </LineChart>
             </ResponsiveContainer>
