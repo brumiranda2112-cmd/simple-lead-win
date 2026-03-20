@@ -20,7 +20,7 @@ interface Props {
 export function TransactionForm({ open, onOpenChange, transaction, onSave, defaultType = 'despesa' }: Props) {
   const leads = storage.getLeads();
   const [type, setType] = useState<TransactionType>(transaction?.type || defaultType);
-  const [category, setCategory] = useState(transaction?.category || (defaultType === 'receita' ? 'contrato' : 'salarios'));
+  const [category, setCategory] = useState<string>(transaction?.category || (defaultType === 'receita' ? 'contrato' : 'salarios'));
   const [description, setDescription] = useState(transaction?.description || '');
   const [value, setValue] = useState(transaction?.value || 0);
   const [date, setDate] = useState(transaction?.date || new Date().toISOString().split('T')[0]);
