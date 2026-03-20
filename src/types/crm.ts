@@ -1,6 +1,7 @@
 export type LeadArea = 'agentes_ia' | 'automacoes' | 'sistemas' | 'consultoria' | 'outro';
 export type LeadSource = 'indicacao' | 'google' | 'instagram' | 'site' | 'linkedin' | 'outro';
-export type LeadStatus = 'novo' | 'contato_inicial' | 'qualificado' | 'proposta' | 'negociacao' | 'ganho' | 'perdido';
+export type LeadStatus = 'cliente_novo' | 'diagnostico' | 'call_cliente' | 'mvp_sistema' | 'aprovacao_cliente' | 'contrato_fechado' | 'desenvolvimento' | 'periodo_ajustes' | 'finalizado';
+export type LeadResponsible = 'bruno' | 'gustavo';
 export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'lembrete' | 'mensagem';
 
 export interface Lead {
@@ -11,6 +12,7 @@ export interface Lead {
   company: string;
   area: LeadArea;
   source: LeadSource;
+  responsible: LeadResponsible;
   estimatedValue: number;
   status: LeadStatus;
   notes: string;
@@ -48,13 +50,15 @@ export interface CrmUser {
 }
 
 export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
-  novo: 'Novo',
-  contato_inicial: 'Contato Inicial',
-  qualificado: 'Qualificado',
-  proposta: 'Proposta Enviada',
-  negociacao: 'Negociação',
-  ganho: 'Ganho',
-  perdido: 'Perdido',
+  cliente_novo: 'Cliente Novo',
+  diagnostico: 'Diagnóstico',
+  call_cliente: 'Call com Cliente',
+  mvp_sistema: 'MVP do Sistema',
+  aprovacao_cliente: 'Aprovação do Cliente',
+  contrato_fechado: 'Contrato Fechado',
+  desenvolvimento: 'Desenvolvimento Completo',
+  periodo_ajustes: 'Período de Ajustes',
+  finalizado: 'Cliente Finalizado',
 };
 
 export const LEAD_AREA_LABELS: Record<LeadArea, string> = {
@@ -74,6 +78,11 @@ export const LEAD_SOURCE_LABELS: Record<LeadSource, string> = {
   outro: 'Outro',
 };
 
+export const LEAD_RESPONSIBLE_LABELS: Record<LeadResponsible, string> = {
+  bruno: 'Bruno',
+  gustavo: 'Gustavo',
+};
+
 export const TASK_TYPE_LABELS: Record<TaskType, string> = {
   followup: 'Follow-up',
   reuniao: 'Reunião',
@@ -84,11 +93,13 @@ export const TASK_TYPE_LABELS: Record<TaskType, string> = {
 };
 
 export const PIPELINE_COLUMNS: { status: LeadStatus; label: string; color: string }[] = [
-  { status: 'novo', label: 'Novo', color: 'hsl(25, 95%, 53%)' },
-  { status: 'contato_inicial', label: 'Contato Inicial', color: 'hsl(45, 93%, 47%)' },
-  { status: 'qualificado', label: 'Qualificado', color: 'hsl(142, 71%, 45%)' },
-  { status: 'proposta', label: 'Proposta Enviada', color: 'hsl(217, 91%, 60%)' },
-  { status: 'negociacao', label: 'Negociação', color: 'hsl(262, 83%, 58%)' },
-  { status: 'ganho', label: 'Ganho', color: 'hsl(142, 76%, 36%)' },
-  { status: 'perdido', label: 'Perdido', color: 'hsl(0, 84%, 60%)' },
+  { status: 'cliente_novo', label: 'Cliente Novo', color: 'hsl(25, 95%, 53%)' },
+  { status: 'diagnostico', label: 'Diagnóstico', color: 'hsl(45, 93%, 47%)' },
+  { status: 'call_cliente', label: 'Call com Cliente', color: 'hsl(200, 80%, 50%)' },
+  { status: 'mvp_sistema', label: 'MVP do Sistema', color: 'hsl(262, 83%, 58%)' },
+  { status: 'aprovacao_cliente', label: 'Aprovação', color: 'hsl(170, 70%, 45%)' },
+  { status: 'contrato_fechado', label: 'Contrato Fechado', color: 'hsl(142, 71%, 45%)' },
+  { status: 'desenvolvimento', label: 'Desenvolvimento', color: 'hsl(217, 91%, 60%)' },
+  { status: 'periodo_ajustes', label: 'Ajustes', color: 'hsl(30, 80%, 55%)' },
+  { status: 'finalizado', label: 'Finalizado', color: 'hsl(142, 76%, 36%)' },
 ];

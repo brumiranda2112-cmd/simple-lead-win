@@ -271,7 +271,7 @@ export default function Tasks() {
                 <Select value={selectedLeadId} onValueChange={v => setSelectedLeadId(v)}>
                   <SelectTrigger><SelectValue placeholder="Escolha um lead..." /></SelectTrigger>
                   <SelectContent>
-                    {leads.filter(l => l.status !== 'ganho' && l.status !== 'perdido').map(l => (
+                    {leads.filter(l => l.status !== 'finalizado').map(l => (
                       <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
                     ))}
                   </SelectContent>
