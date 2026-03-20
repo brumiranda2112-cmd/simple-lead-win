@@ -34,7 +34,7 @@ export function TransactionForm({ open, onOpenChange, transaction, onSave, defau
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const data = {
-      type, category: category as ExpenseCategory | RevenueCategory,
+      type, category: category as ExpenseCategory | RevenueCategory | WithdrawalCategory,
       description, value, date, leadId: leadId || undefined,
       responsible: (responsible || undefined) as LeadResponsible | undefined,
       recurring, notes,
