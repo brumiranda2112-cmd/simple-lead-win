@@ -51,7 +51,7 @@ export type WithdrawalCategory = 'pro_labore' | 'distribuicao_lucros' | 'adianta
 export interface Transaction {
   id: string;
   type: TransactionType;
-  category: ExpenseCategory | RevenueCategory;
+  category: ExpenseCategory | RevenueCategory | WithdrawalCategory;
   description: string;
   value: number;
   date: string;
