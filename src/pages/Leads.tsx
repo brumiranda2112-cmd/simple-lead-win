@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Lead, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_STATUS_LABELS, LeadArea, LeadSource, LeadStatus } from '@/types/crm';
+import { Lead, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_STATUS_LABELS, LEAD_RESPONSIBLE_LABELS, LeadArea, LeadSource, LeadStatus, LeadResponsible } from '@/types/crm';
 import * as storage from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +60,6 @@ export default function Leads() {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -89,12 +88,12 @@ export default function Leads() {
         </Select>
       </div>
 
-      {/* Table */}
       <div className="rounded-lg border border-border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-secondary/50">
               <TableHead>Nome</TableHead>
+              <TableHead>Responsável</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Área</TableHead>
               <TableHead>Status</TableHead>
@@ -105,10 +104,11 @@ export default function Leads() {
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10">Nenhum lead encontrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10">Nenhum lead encontrado</TableCell></TableRow>
             ) : filtered.map(lead => (
               <TableRow key={lead.id} className="hover:bg-secondary/30 cursor-pointer" onClick={() => setDetailLead(lead)}>
                 <TableCell className="font-medium">{lead.name}</TableCell>
+                <TableCell><Badge variant="outline">{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}</Badge></TableCell>
                 <TableCell>{lead.phone}</TableCell>
                 <TableCell><Badge variant="outline">{LEAD_AREA_LABELS[lead.area as LeadArea]}</Badge></TableCell>
                 <TableCell><Badge variant="secondary">{LEAD_STATUS_LABELS[lead.status as LeadStatus]}</Badge></TableCell>

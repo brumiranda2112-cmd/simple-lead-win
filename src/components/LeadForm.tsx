@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lead, LeadArea, LeadSource, LeadStatus, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_STATUS_LABELS } from '@/types/crm';
+import { Lead, LeadArea, LeadSource, LeadStatus, LeadResponsible, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_STATUS_LABELS, LEAD_RESPONSIBLE_LABELS } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,8 +22,9 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
     company: lead?.company || '',
     area: lead?.area || 'agentes_ia' as LeadArea,
     source: lead?.source || 'indicacao' as LeadSource,
+    responsible: lead?.responsible || 'bruno' as LeadResponsible,
     estimatedValue: lead?.estimatedValue || 0,
-    status: lead?.status || 'novo' as LeadStatus,
+    status: lead?.status || 'cliente_novo' as LeadStatus,
     notes: lead?.notes || '',
     nextFollowup: lead?.nextFollowup || null,
     wonLostReason: lead?.wonLostReason || '',
@@ -71,6 +72,17 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
+              <Label>Responsável</Label>
+              <Select value={form.responsible} onValueChange={v => update('responsible', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(LEAD_RESPONSIBLE_LABELS).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Área</Label>
               <Select value={form.area} onValueChange={v => update('area', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -81,6 +93,8 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Origem</Label>
               <Select value={form.source} onValueChange={v => update('source', v)}>
@@ -92,26 +106,24 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Valor Estimado (R$)</Label>
               <Input type="number" value={form.estimatedValue} onChange={e => update('estimatedValue', Number(e.target.value))} />
             </div>
-            {lead && (
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={v => update('status', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(LEAD_STATUS_LABELS).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
+          {lead && (
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={form.status} onValueChange={v => update('status', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(LEAD_STATUS_LABELS).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>Próximo Follow-up</Label>
             <Input type="datetime-local" value={form.nextFollowup || ''} onChange={e => update('nextFollowup', e.target.value || null)} />

@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Lead, PIPELINE_COLUMNS, LEAD_AREA_LABELS, LeadArea } from '@/types/crm';
+import { Lead, PIPELINE_COLUMNS, LEAD_AREA_LABELS, LEAD_RESPONSIBLE_LABELS, LeadArea, LeadResponsible } from '@/types/crm';
 import * as storage from '@/lib/storage';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LeadForm } from '@/components/LeadForm';
 import { LeadDetails } from '@/components/LeadDetails';
-import { Plus, Phone, DollarSign, Clock } from 'lucide-react';
+import { Plus, Phone, DollarSign, Clock, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,7 +32,7 @@ export default function Pipeline() {
     if (!result.destination) return;
     const newStatus = result.destination.droppableId;
     const leadId = result.draggableId;
-    if (newStatus === 'ganho' || newStatus === 'perdido') {
+    if (newStatus === 'finalizado') {
       setReasonModal({ leadId, status: newStatus });
       return;
     }
@@ -66,11 +66,11 @@ export default function Pipeline() {
             const items = grouped[col.status] || [];
             const total = colTotal(items);
             return (
-              <div key={col.status} className="min-w-[240px] w-[240px] flex flex-col shrink-0">
+              <div key={col.status} className="min-w-[220px] w-[220px] flex flex-col shrink-0">
                 {/* Column header */}
                 <div className="rounded-t-lg px-3 py-2 mb-2" style={{ backgroundColor: col.color + '20', borderBottom: `2px solid ${col.color}` }}>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold" style={{ color: col.color }}>{col.label}</span>
+                    <span className="text-xs font-semibold" style={{ color: col.color }}>{col.label}</span>
                     <Badge variant="secondary" className="text-xs">{items.length}</Badge>
                   </div>
                   {total > 0 && <p className="text-xs text-muted-foreground mt-1">R$ {total.toLocaleString('pt-BR')}</p>}
@@ -96,6 +96,9 @@ export default function Pipeline() {
                               <p className="font-medium text-sm truncate">{lead.name}</p>
                               <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                                 <Phone className="w-3 h-3" />{lead.phone}
+                              </div>
+                              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                <User className="w-3 h-3" />{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}
                               </div>
                               <div className="flex items-center justify-between mt-2">
                                 {lead.estimatedValue > 0 && (
@@ -128,15 +131,15 @@ export default function Pipeline() {
         <LeadDetails lead={detailLead} open={!!detailLead} onOpenChange={o => { if (!o) setDetailLead(null); }} onRefresh={() => { refresh(); setDetailLead(storage.getLead(detailLead.id) || null); }} />
       )}
 
-      {/* Reason modal for Ganho/Perdido */}
+      {/* Reason modal for Finalizado */}
       <Dialog open={!!reasonModal} onOpenChange={o => { if (!o) setReasonModal(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{reasonModal?.status === 'ganho' ? '🎉 Lead Ganho!' : '❌ Lead Perdido'}</DialogTitle>
+            <DialogTitle>✅ Cliente Finalizado!</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Label>Motivo</Label>
-            <Input value={reason} onChange={e => setReason(e.target.value)} placeholder="Descreva o motivo..." />
+            <Label>Observações finais</Label>
+            <Input value={reason} onChange={e => setReason(e.target.value)} placeholder="Descreva como foi o projeto..." />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReasonModal(null)}>Cancelar</Button>
