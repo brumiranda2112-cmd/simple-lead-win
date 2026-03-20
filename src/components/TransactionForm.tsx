@@ -29,7 +29,7 @@ export function TransactionForm({ open, onOpenChange, transaction, onSave, defau
   const [recurring, setRecurring] = useState(transaction?.recurring || false);
   const [notes, setNotes] = useState(transaction?.notes || '');
 
-  const categories = type === 'receita' ? REVENUE_CATEGORY_LABELS : EXPENSE_CATEGORY_LABELS;
+  const categories = type === 'receita' ? REVENUE_CATEGORY_LABELS : type === 'retirada' ? WITHDRAWAL_CATEGORY_LABELS : EXPENSE_CATEGORY_LABELS;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
