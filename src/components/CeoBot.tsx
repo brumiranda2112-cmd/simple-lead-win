@@ -371,9 +371,7 @@ export function CeoBot() {
 
           {isLoading && (
             <div className="flex gap-2 items-center">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
+              <img src={khronosIcon} alt="K" className="w-7 h-7 rounded-full object-cover shrink-0" />
               <div className="bg-secondary/70 rounded-2xl rounded-bl-md px-4 py-3">
                 <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
               </div>
