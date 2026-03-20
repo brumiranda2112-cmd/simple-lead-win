@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import * as storage from '@/lib/storage';
-import { Transaction, EXPENSE_CATEGORY_LABELS, REVENUE_CATEGORY_LABELS, LEAD_RESPONSIBLE_LABELS, LeadResponsible, ExpenseCategory, RevenueCategory, PIPELINE_COLUMNS } from '@/types/crm';
+import { Transaction, TransactionType, EXPENSE_CATEGORY_LABELS, REVENUE_CATEGORY_LABELS, WITHDRAWAL_CATEGORY_LABELS, LEAD_RESPONSIBLE_LABELS, LeadResponsible, ExpenseCategory, RevenueCategory, WithdrawalCategory, PIPELINE_COLUMNS } from '@/types/crm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +34,7 @@ export default function Financeiro() {
   const [formOpen, setFormOpen] = useState(false);
   const [editTxn, setEditTxn] = useState<Transaction | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [defaultType, setDefaultType] = useState<'receita' | 'despesa'>('despesa');
+  const [defaultType, setDefaultType] = useState<TransactionType>('despesa');
   const [period, setPeriod] = useState('all');
 
   const leads = storage.getLeads();
@@ -63,13 +63,15 @@ export default function Financeiro() {
   const stats = useMemo(() => {
     const receitas = filteredTxns.filter(t => t.type === 'receita');
     const despesas = filteredTxns.filter(t => t.type === 'despesa');
+    const retiradas = filteredTxns.filter(t => t.type === 'retirada');
     const totalReceita = receitas.reduce((s, t) => s + t.value, 0);
     const totalDespesa = despesas.reduce((s, t) => s + t.value, 0);
-    const lucro = totalReceita - totalDespesa;
+    const totalRetirada = retiradas.reduce((s, t) => s + t.value, 0);
+    const lucro = totalReceita - totalDespesa - totalRetirada;
     const margem = totalReceita > 0 ? ((lucro / totalReceita) * 100).toFixed(1) : '0';
 
     // Monthly recurring
-    const recorrente = transactions.filter(t => t.recurring).reduce((s, t) => s + (t.type === 'despesa' ? -t.value : t.value), 0);
+    const recorrente = transactions.filter(t => t.recurring).reduce((s, t) => s + (t.type !== 'receita' ? -t.value : t.value), 0);
 
     // Forecast from pipeline
     const forecast = leads
@@ -77,14 +79,16 @@ export default function Financeiro() {
       .reduce((s, l) => s + l.estimatedValue * (STAGE_PROBABILITY[l.status] || 0.1), 0);
 
     // By responsible
-    const byResponsible: Record<string, { receita: number; despesa: number }> = {};
+    const byResponsible: Record<string, { receita: number; despesa: number; retirada: number }> = {};
     filteredTxns.forEach(t => {
       const r = t.responsible || 'sem_responsavel';
-      if (!byResponsible[r]) byResponsible[r] = { receita: 0, despesa: 0 };
-      byResponsible[r][t.type] += t.value;
+      if (!byResponsible[r]) byResponsible[r] = { receita: 0, despesa: 0, retirada: 0 };
+      if (t.type === 'receita') byResponsible[r].receita += t.value;
+      else if (t.type === 'retirada') byResponsible[r].retirada += t.value;
+      else byResponsible[r].despesa += t.value;
     });
 
-    return { totalReceita, totalDespesa, lucro, margem, recorrente, forecast, byResponsible };
+    return { totalReceita, totalDespesa, totalRetirada, lucro, margem, recorrente, forecast, byResponsible };
   }, [filteredTxns, leads, transactions]);
 
   // Charts data
@@ -137,7 +141,8 @@ export default function Financeiro() {
       name: LEAD_RESPONSIBLE_LABELS[key as LeadResponsible] || 'Sem responsável',
       receita: val.receita,
       despesa: val.despesa,
-      lucro: val.receita - val.despesa,
+      retirada: val.retirada,
+      lucro: val.receita - val.despesa - val.retirada,
     }));
   }, [stats.byResponsible]);
 
@@ -169,6 +174,9 @@ export default function Financeiro() {
           <Button variant="outline" onClick={() => { setDefaultType('receita'); setEditTxn(null); setFormOpen(true); }}>
             <ArrowUpRight className="w-4 h-4 mr-1 text-emerald-500" />Receita
           </Button>
+          <Button variant="outline" onClick={() => { setDefaultType('retirada'); setEditTxn(null); setFormOpen(true); }}>
+            <ArrowDownRight className="w-4 h-4 mr-1 text-orange-500" />Retirada
+          </Button>
           <Button onClick={() => { setDefaultType('despesa'); setEditTxn(null); setFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-1" />Despesa
           </Button>
@@ -190,6 +198,13 @@ export default function Financeiro() {
             <TrendingDown className="w-5 h-5 text-red-500" />
           </div>
           <p className="text-2xl font-bold mt-1 text-red-500">{fmt(stats.totalDespesa)}</p>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Retiradas</p>
+            <ArrowDownRight className="w-5 h-5 text-orange-500" />
+          </div>
+          <p className="text-2xl font-bold mt-1 text-orange-500">{fmt(stats.totalRetirada)}</p>
         </Card>
         <Card className="p-4">
           <div className="flex items-center justify-between">
@@ -222,7 +237,7 @@ export default function Financeiro() {
           <Card key={key} className="p-4">
             <p className="text-sm text-muted-foreground">{LEAD_RESPONSIBLE_LABELS[key as LeadResponsible] || 'Sem responsável'}</p>
             <p className="text-xl font-bold mt-1 text-emerald-500">{fmt(val.receita)}</p>
-            <p className="text-xs text-muted-foreground">Despesas: {fmt(val.despesa)}</p>
+            <p className="text-xs text-muted-foreground">Despesas: {fmt(val.despesa)} | Retirada: {fmt(val.retirada)}</p>
           </Card>
         ))}
       </div>
@@ -395,12 +410,14 @@ export default function Financeiro() {
                     <TableCell className="text-sm">
                       {txn.type === 'receita'
                         ? REVENUE_CATEGORY_LABELS[txn.category as RevenueCategory] || txn.category
+                        : txn.type === 'retirada'
+                        ? WITHDRAWAL_CATEGORY_LABELS[txn.category as WithdrawalCategory] || txn.category
                         : EXPENSE_CATEGORY_LABELS[txn.category as ExpenseCategory] || txn.category}
                     </TableCell>
                     <TableCell className="text-sm max-w-[200px] truncate">{txn.description}</TableCell>
                     <TableCell className="text-sm">{getLeadName(txn.leadId)}</TableCell>
                     <TableCell className="text-sm">{txn.responsible ? LEAD_RESPONSIBLE_LABELS[txn.responsible as LeadResponsible] : '-'}</TableCell>
-                    <TableCell className={`font-medium ${txn.type === 'receita' ? 'text-emerald-500' : 'text-red-500'}`}>
+                    <TableCell className={`font-medium ${txn.type === 'receita' ? 'text-emerald-500' : txn.type === 'retirada' ? 'text-orange-500' : 'text-red-500'}`}>
                       {txn.type === 'receita' ? '+' : '-'} {fmt(txn.value)}
                     </TableCell>
                     <TableCell className="text-right">

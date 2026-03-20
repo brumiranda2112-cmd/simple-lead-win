@@ -1,7 +1,7 @@
 export type LeadArea = 'agentes_ia' | 'automacoes' | 'sistemas' | 'consultoria' | 'outro';
 export type LeadSource = 'indicacao' | 'google' | 'instagram' | 'site' | 'linkedin' | 'outro';
 export type LeadStatus = 'cliente_novo' | 'diagnostico' | 'call_cliente' | 'mvp_sistema' | 'aprovacao_cliente' | 'contrato_fechado' | 'desenvolvimento' | 'periodo_ajustes' | 'finalizado';
-export type LeadResponsible = 'bruno' | 'gustavo';
+export type LeadResponsible = 'bruno' | 'gustavo' | 'ana_luiza';
 export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'lembrete' | 'mensagem';
 
 export interface Lead {
@@ -43,14 +43,15 @@ export interface Activity {
   createdAt: string;
 }
 
-export type TransactionType = 'receita' | 'despesa';
+export type TransactionType = 'receita' | 'despesa' | 'retirada';
 export type ExpenseCategory = 'salarios' | 'ferramentas' | 'infraestrutura' | 'marketing' | 'impostos' | 'servicos' | 'outros';
 export type RevenueCategory = 'contrato' | 'consultoria' | 'recorrente' | 'avulso' | 'outros';
+export type WithdrawalCategory = 'pro_labore' | 'distribuicao_lucros' | 'adiantamento' | 'outros';
 
 export interface Transaction {
   id: string;
   type: TransactionType;
-  category: ExpenseCategory | RevenueCategory;
+  category: ExpenseCategory | RevenueCategory | WithdrawalCategory;
   description: string;
   value: number;
   date: string;
@@ -76,6 +77,13 @@ export const REVENUE_CATEGORY_LABELS: Record<RevenueCategory, string> = {
   consultoria: 'Consultoria',
   recorrente: 'Receita Recorrente',
   avulso: 'Serviço Avulso',
+  outros: 'Outros',
+};
+
+export const WITHDRAWAL_CATEGORY_LABELS: Record<WithdrawalCategory, string> = {
+  pro_labore: 'Pró-labore',
+  distribuicao_lucros: 'Distribuição de Lucros',
+  adiantamento: 'Adiantamento',
   outros: 'Outros',
 };
 
@@ -117,6 +125,7 @@ export const LEAD_SOURCE_LABELS: Record<LeadSource, string> = {
 export const LEAD_RESPONSIBLE_LABELS: Record<LeadResponsible, string> = {
   bruno: 'Bruno',
   gustavo: 'Gustavo',
+  ana_luiza: 'Ana Luiza',
 };
 
 export const TASK_TYPE_LABELS: Record<TaskType, string> = {

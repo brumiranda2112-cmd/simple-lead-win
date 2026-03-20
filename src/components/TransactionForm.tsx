@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Transaction, TransactionType, ExpenseCategory, RevenueCategory, EXPENSE_CATEGORY_LABELS, REVENUE_CATEGORY_LABELS, LEAD_RESPONSIBLE_LABELS, LeadResponsible } from '@/types/crm';
+import { Transaction, TransactionType, ExpenseCategory, RevenueCategory, WithdrawalCategory, EXPENSE_CATEGORY_LABELS, REVENUE_CATEGORY_LABELS, WITHDRAWAL_CATEGORY_LABELS, LEAD_RESPONSIBLE_LABELS, LeadResponsible } from '@/types/crm';
 import * as storage from '@/lib/storage';
 
 interface Props {
@@ -29,12 +29,12 @@ export function TransactionForm({ open, onOpenChange, transaction, onSave, defau
   const [recurring, setRecurring] = useState(transaction?.recurring || false);
   const [notes, setNotes] = useState(transaction?.notes || '');
 
-  const categories = type === 'receita' ? REVENUE_CATEGORY_LABELS : EXPENSE_CATEGORY_LABELS;
+  const categories = type === 'receita' ? REVENUE_CATEGORY_LABELS : type === 'retirada' ? WITHDRAWAL_CATEGORY_LABELS : EXPENSE_CATEGORY_LABELS;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const data = {
-      type, category: category as ExpenseCategory | RevenueCategory,
+      type, category: category as ExpenseCategory | RevenueCategory | WithdrawalCategory,
       description, value, date, leadId: leadId || undefined,
       responsible: (responsible || undefined) as LeadResponsible | undefined,
       recurring, notes,
@@ -58,11 +58,12 @@ export function TransactionForm({ open, onOpenChange, transaction, onSave, defau
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Tipo</Label>
-              <Select value={type} onValueChange={(v) => { setType(v as TransactionType); setCategory(v === 'receita' ? 'contrato' : 'salarios'); }}>
+              <Select value={type} onValueChange={(v) => { setType(v as TransactionType); setCategory(v === 'receita' ? 'contrato' : v === 'retirada' ? 'pro_labore' : 'salarios'); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="receita">💰 Receita</SelectItem>
                   <SelectItem value="despesa">📉 Despesa</SelectItem>
+                  <SelectItem value="retirada">🏦 Retirada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
