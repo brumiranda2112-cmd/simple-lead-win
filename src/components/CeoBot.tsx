@@ -307,7 +307,7 @@ export function CeoBot() {
           open && 'scale-0 opacity-0 pointer-events-none'
         )}
       >
-        <Sparkles className="w-6 h-6" />
+        <img src={khronosIcon} alt="KHRÓNOS CEO" className="w-9 h-9 rounded-full object-cover" />
       </button>
 
       {/* Chat panel */}
