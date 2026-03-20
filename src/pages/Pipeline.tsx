@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LeadForm } from '@/components/LeadForm';
 import { LeadDetails } from '@/components/LeadDetails';
-import { Plus, Phone, DollarSign, Clock, User } from 'lucide-react';
+import { Plus, Phone, DollarSign, Clock, User, MessageCircle } from 'lucide-react';
+import { openWhatsApp } from '@/lib/whatsapp';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -96,6 +97,15 @@ export default function Pipeline() {
                               <p className="font-medium text-sm truncate">{lead.name}</p>
                               <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                                 <Phone className="w-3 h-3" />{lead.phone}
+                                {lead.phone && (
+                                  <button
+                                    onClick={e => { e.stopPropagation(); openWhatsApp(lead.phone); }}
+                                    className="ml-auto text-emerald-500 hover:text-emerald-400 transition-colors"
+                                    title="WhatsApp"
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
                               </div>
                               <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                                 <User className="w-3 h-3" />{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}
