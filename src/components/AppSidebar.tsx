@@ -23,6 +23,7 @@ const navItems = [
   { title: 'Leads', url: '/leads', icon: Users },
   { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
   { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
+  { title: 'Admin', url: '/admin', icon: Shield, adminOnly: true },
 ];
 
 export function AppSidebar() {
