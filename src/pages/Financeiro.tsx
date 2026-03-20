@@ -169,6 +169,9 @@ export default function Financeiro() {
           <Button variant="outline" onClick={() => { setDefaultType('receita'); setEditTxn(null); setFormOpen(true); }}>
             <ArrowUpRight className="w-4 h-4 mr-1 text-emerald-500" />Receita
           </Button>
+          <Button variant="outline" onClick={() => { setDefaultType('retirada'); setEditTxn(null); setFormOpen(true); }}>
+            <ArrowDownRight className="w-4 h-4 mr-1 text-orange-500" />Retirada
+          </Button>
           <Button onClick={() => { setDefaultType('despesa'); setEditTxn(null); setFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-1" />Despesa
           </Button>
