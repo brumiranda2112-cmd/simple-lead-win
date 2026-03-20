@@ -12,12 +12,19 @@ import Pipeline from "./pages/Pipeline";
 import Leads from "./pages/Leads";
 import Tasks from "./pages/Tasks";
 import Financeiro from "./pages/Financeiro";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   return (
     <AppLayout>
@@ -28,6 +35,7 @@ function ProtectedRoutes() {
         <Route path="/leads" element={<Leads />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/financeiro" element={<Financeiro />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
@@ -35,7 +43,12 @@ function ProtectedRoutes() {
 }
 
 function AppRoutes() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
   return (
     <Routes>
       <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
