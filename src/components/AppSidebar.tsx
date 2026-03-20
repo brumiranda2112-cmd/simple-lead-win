@@ -72,8 +72,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-3">
-        {!collapsed && user && (
-          <p className="text-xs text-sidebar-foreground mb-2 truncate">{user.name}</p>
+        {!collapsed && profile && (
+          <p className="text-xs text-sidebar-foreground mb-2 truncate">{profile.name}</p>
         )}
         <SidebarMenuButton onClick={logout} className="flex items-center gap-3 text-sidebar-foreground hover:text-destructive cursor-pointer">
           <LogOut className="h-4 w-4" />
