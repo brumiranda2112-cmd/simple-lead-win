@@ -45,7 +45,14 @@ export function LeadDetails({ lead, open, onOpenChange, onRefresh }: Props) {
           </DialogHeader>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground"><Phone className="w-4 h-4" />{lead.phone}</div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Phone className="w-4 h-4" />{lead.phone}
+              {lead.phone && (
+                <Button size="sm" variant="ghost" className="text-emerald-500 hover:text-emerald-400 h-7 px-2" onClick={() => openWhatsApp(lead.phone)}>
+                  <MessageCircle className="w-4 h-4 mr-1" />WhatsApp
+                </Button>
+              )}
+            </div>
             {lead.email && <div className="flex items-center gap-2 text-muted-foreground"><Mail className="w-4 h-4" />{lead.email}</div>}
             {lead.company && <div className="flex items-center gap-2 text-muted-foreground"><Building2 className="w-4 h-4" />{lead.company}</div>}
             <div className="flex items-center gap-2 text-muted-foreground"><DollarSign className="w-4 h-4" />R$ {lead.estimatedValue.toLocaleString('pt-BR')}</div>

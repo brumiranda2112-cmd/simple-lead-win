@@ -119,6 +119,11 @@ export default function Leads() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
+                    {lead.phone && (
+                      <Button size="icon" variant="ghost" className="text-emerald-500 hover:text-emerald-400" onClick={() => openWhatsApp(lead.phone)} title="Abrir no WhatsApp">
+                        <MessageCircle className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button size="icon" variant="ghost" onClick={() => setDetailLead(lead)}><Eye className="w-4 h-4" /></Button>
                     <Button size="icon" variant="ghost" onClick={() => { setEditLead(lead); setFormOpen(true); }}><Pencil className="w-4 h-4" /></Button>
                     <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleteId(lead.id)}><Trash2 className="w-4 h-4" /></Button>
