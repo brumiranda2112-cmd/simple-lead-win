@@ -339,9 +339,7 @@ export function CeoBot() {
           {messages.map((msg, i) => (
             <div key={i} className={cn('flex gap-2', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
               {msg.role === 'assistant' && (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
+                <img src={khronosIcon} alt="K" className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5" />
               )}
               <div className={cn(
                 'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
