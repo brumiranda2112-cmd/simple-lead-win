@@ -321,9 +321,7 @@ export function CeoBot() {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-amber-500/10 to-orange-500/10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
+            <img src={khronosIcon} alt="KHRÓNOS" className="w-9 h-9 rounded-full object-cover" />
             <div>
               <h3 className="text-sm font-semibold text-foreground">KHRÓNOS CEO</h3>
               <p className="text-[11px] text-muted-foreground">Assistente inteligente do CRM</p>
