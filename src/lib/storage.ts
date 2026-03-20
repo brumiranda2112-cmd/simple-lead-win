@@ -1,4 +1,4 @@
-import { Lead, Task, Activity, CrmUser, LeadStatus } from '@/types/crm';
+import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction } from '@/types/crm';
 
 const KEYS = {
   USER: 'crm_user',
