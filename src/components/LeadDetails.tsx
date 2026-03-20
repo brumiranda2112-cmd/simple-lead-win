@@ -4,8 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Phone, Mail, Building2, Clock, DollarSign, FileText, ArrowRight, Plus, CheckCircle, User } from 'lucide-react';
+import { Phone, Mail, Building2, Clock, DollarSign, FileText, ArrowRight, Plus, CheckCircle, User, MessageCircle } from 'lucide-react';
 import { TaskForm } from '@/components/TaskForm';
+import { openWhatsApp } from '@/lib/whatsapp';
 import { useState } from 'react';
 
 interface Props {
