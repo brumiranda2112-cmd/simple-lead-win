@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { format, isSameDay, parseISO, startOfDay } from 'date-fns';
+import { format, isSameDay, parseISO, startOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Task, TASK_TYPE_LABELS, TaskType } from '@/types/crm';
 import * as storage from '@/lib/storage';
@@ -8,10 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TaskForm } from '@/components/TaskForm';
 import { Calendar } from '@/components/ui/calendar';
+import { WeeklyAgenda } from '@/components/WeeklyAgenda';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Clock, AlertTriangle, CheckCircle2, Trash2, CalendarDays, List, MessageSquare, Users, FileText, Bell, Phone } from 'lucide-react';
+import { Plus, Clock, AlertTriangle, CheckCircle2, Trash2, CalendarDays, List, MessageSquare, Users, FileText, Bell, Phone, CalendarRange } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 
 type Filter = 'all' | 'today' | 'overdue' | 'completed';
 
@@ -34,11 +36,15 @@ const TYPE_COLORS: Record<TaskType, string> = {
 };
 
 export default function Tasks() {
+  // Activate notifications
+  useTaskNotifications();
+
   const [tasks, setTasks] = useState<Task[]>(storage.getTasks());
   const [filter, setFilter] = useState<Filter>('all');
   const [formOpen, setFormOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const leads = storage.getLeads();
   const today = new Date().toISOString().split('T')[0];
 
@@ -57,14 +63,12 @@ export default function Tasks() {
     return tasks
       .filter(t => {
         try {
-          const taskDate = parseISO(t.dueDate);
-          return isSameDay(taskDate, selectedDate);
+          return isSameDay(parseISO(t.dueDate), selectedDate);
         } catch { return false; }
       })
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   }, [tasks, selectedDate]);
 
-  // Dates that have tasks (for calendar dots)
   const taskDates = useMemo(() => {
     const dates = new Map<string, { count: number; hasOverdue: boolean }>();
     tasks.forEach(t => {
@@ -143,16 +147,34 @@ export default function Tasks() {
         <div className="flex items-center gap-2 text-primary"><CheckCircle2 className="w-4 h-4" />Hoje: <span className="font-medium">{todayCount}</span></div>
       </div>
 
+      {/* Notification permission hint */}
+      {'Notification' in window && Notification.permission === 'default' && (
+        <div className="flex items-center gap-2 p-3 rounded-lg border border-amber-500/30 bg-amber-500/5 text-sm">
+          <Bell className="w-4 h-4 text-amber-400 shrink-0" />
+          <span className="text-muted-foreground">
+            Ative as notificações para receber alertas 15 min antes das tarefas.
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-auto shrink-0 text-xs"
+            onClick={() => Notification.requestPermission()}
+          >
+            Ativar
+          </Button>
+        </div>
+      )}
+
       <Tabs defaultValue="agenda" className="w-full">
         <TabsList className="bg-muted/50">
-          <TabsTrigger value="agenda" className="gap-2"><CalendarDays className="w-4 h-4" />Agenda</TabsTrigger>
+          <TabsTrigger value="agenda" className="gap-2"><CalendarDays className="w-4 h-4" />Dia</TabsTrigger>
+          <TabsTrigger value="semana" className="gap-2"><CalendarRange className="w-4 h-4" />Semana</TabsTrigger>
           <TabsTrigger value="lista" className="gap-2"><List className="w-4 h-4" />Lista</TabsTrigger>
         </TabsList>
 
-        {/* ===== AGENDA TAB ===== */}
+        {/* ===== DAY/AGENDA TAB ===== */}
         <TabsContent value="agenda" className="mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
-            {/* Calendar */}
             <div className="bg-card border border-border rounded-xl p-4">
               <Calendar
                 mode="single"
@@ -161,77 +183,43 @@ export default function Tasks() {
                 locale={ptBR}
                 className="p-0 pointer-events-auto"
                 modifiers={{
-                  hasTasks: (date) => {
-                    const key = format(date, 'yyyy-MM-dd');
-                    return taskDates.has(key);
-                  },
-                  hasOverdue: (date) => {
-                    const key = format(date, 'yyyy-MM-dd');
-                    return taskDates.get(key)?.hasOverdue ?? false;
-                  },
+                  hasTasks: (date) => taskDates.has(format(date, 'yyyy-MM-dd')),
+                  hasOverdue: (date) => taskDates.get(format(date, 'yyyy-MM-dd'))?.hasOverdue ?? false,
                 }}
                 modifiersStyles={{
-                  hasTasks: {
-                    fontWeight: 700,
-                    textDecoration: 'underline',
-                    textDecorationColor: 'hsl(25, 95%, 53%)',
-                    textUnderlineOffset: '4px',
-                  },
-                  hasOverdue: {
-                    fontWeight: 700,
-                    textDecoration: 'underline',
-                    textDecorationColor: 'hsl(0, 84%, 60%)',
-                    textUnderlineOffset: '4px',
-                  },
+                  hasTasks: { fontWeight: 700, textDecoration: 'underline', textDecorationColor: 'hsl(25, 95%, 53%)', textUnderlineOffset: '4px' },
+                  hasOverdue: { fontWeight: 700, textDecoration: 'underline', textDecorationColor: 'hsl(0, 84%, 60%)', textUnderlineOffset: '4px' },
                 }}
               />
-
-              {/* Legend */}
               <div className="mt-4 pt-3 border-t border-border space-y-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-0.5 bg-primary rounded" />
-                  <span>Dia com tarefas</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-0.5 bg-destructive rounded" />
-                  <span>Tarefas atrasadas</span>
-                </div>
+                <div className="flex items-center gap-2"><span className="w-3 h-0.5 bg-primary rounded" /><span>Dia com tarefas</span></div>
+                <div className="flex items-center gap-2"><span className="w-3 h-0.5 bg-destructive rounded" /><span>Tarefas atrasadas</span></div>
               </div>
-
-              {/* Quick type filter */}
               <div className="mt-4 pt-3 border-t border-border">
                 <p className="text-xs font-medium text-muted-foreground mb-2">Tipos de tarefa</p>
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(TASK_TYPE_LABELS).map(([key, label]) => (
                     <div key={key} className={cn('flex items-center gap-1 px-2 py-1 rounded-md border text-[11px]', TYPE_COLORS[key as TaskType])}>
-                      {TYPE_ICONS[key as TaskType]}
-                      {label}
+                      {TYPE_ICONS[key as TaskType]}{label}
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-
-            {/* Day tasks */}
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-lg font-semibold">
-                  {isSameDay(selectedDate, new Date())
-                    ? 'Hoje'
-                    : format(selectedDate, "d 'de' MMMM, yyyy", { locale: ptBR })}
+                  {isSameDay(selectedDate, new Date()) ? 'Hoje' : format(selectedDate, "d 'de' MMMM, yyyy", { locale: ptBR })}
                 </h2>
                 <Badge variant="outline" className="text-xs">
                   {selectedDayTasks.length} tarefa{selectedDayTasks.length !== 1 ? 's' : ''}
                 </Badge>
               </div>
-
               {selectedDayTasks.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
                   <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-30" />
                   <p className="text-sm">Nenhuma tarefa para este dia</p>
-                  <Button variant="link" className="mt-2 text-primary" onClick={() => setFormOpen(true)}>
-                    + Criar tarefa
-                  </Button>
+                  <Button variant="link" className="mt-2 text-primary" onClick={() => setFormOpen(true)}>+ Criar tarefa</Button>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -240,6 +228,18 @@ export default function Tasks() {
               )}
             </div>
           </div>
+        </TabsContent>
+
+        {/* ===== WEEK TAB ===== */}
+        <TabsContent value="semana" className="mt-4">
+          <WeeklyAgenda
+            tasks={tasks}
+            weekStart={weekStart}
+            onWeekChange={setWeekStart}
+            onComplete={handleComplete}
+            onDelete={handleDelete}
+            getLeadName={getLeadName}
+          />
         </TabsContent>
 
         {/* ===== LIST TAB ===== */}
@@ -253,7 +253,6 @@ export default function Tasks() {
               <SelectItem value="completed">Concluídas</SelectItem>
             </SelectContent>
           </Select>
-
           <div className="space-y-2">
             {filtered.length === 0 ? (
               <p className="text-center text-muted-foreground py-10">Nenhuma tarefa encontrada</p>
@@ -262,7 +261,7 @@ export default function Tasks() {
         </TabsContent>
       </Tabs>
 
-      {/* Task form - need to select lead */}
+      {/* Task form */}
       {formOpen && (
         <>
           {!selectedLeadId ? (
