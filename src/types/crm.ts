@@ -43,9 +43,10 @@ export interface Activity {
   createdAt: string;
 }
 
-export type TransactionType = 'receita' | 'despesa';
+export type TransactionType = 'receita' | 'despesa' | 'retirada';
 export type ExpenseCategory = 'salarios' | 'ferramentas' | 'infraestrutura' | 'marketing' | 'impostos' | 'servicos' | 'outros';
 export type RevenueCategory = 'contrato' | 'consultoria' | 'recorrente' | 'avulso' | 'outros';
+export type WithdrawalCategory = 'pro_labore' | 'distribuicao_lucros' | 'adiantamento' | 'outros';
 
 export interface Transaction {
   id: string;
