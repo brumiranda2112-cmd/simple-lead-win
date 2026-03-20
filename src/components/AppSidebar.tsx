@@ -29,8 +29,9 @@ const navItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const { user, logout } = useAuth();
+  const { profile, isAdmin, logout } = useAuth();
   const pendingCount = getOverdueTasks().length + getTodayTasks().length;
+  const visibleItems = navItems.filter(item => !('adminOnly' in item) || isAdmin);
 
   return (
     <Sidebar collapsible="icon">
