@@ -58,7 +58,7 @@ export function TransactionForm({ open, onOpenChange, transaction, onSave, defau
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Tipo</Label>
-              <Select value={type} onValueChange={(v) => { setType(v as TransactionType); setCategory(v === 'receita' ? 'contrato' : 'salarios'); }}>
+              <Select value={type} onValueChange={(v) => { setType(v as TransactionType); setCategory(v === 'receita' ? 'contrato' : v === 'retirada' ? 'pro_labore' : 'salarios'); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="receita">💰 Receita</SelectItem>
