@@ -63,6 +63,7 @@ export function TransactionForm({ open, onOpenChange, transaction, onSave, defau
                 <SelectContent>
                   <SelectItem value="receita">💰 Receita</SelectItem>
                   <SelectItem value="despesa">📉 Despesa</SelectItem>
+                  <SelectItem value="retirada">🏦 Retirada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
