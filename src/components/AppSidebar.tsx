@@ -1,4 +1,4 @@
-import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut, DollarSign, Shield } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getOverdueTasks, getTodayTasks } from '@/lib/storage';
@@ -23,13 +23,15 @@ const navItems = [
   { title: 'Leads', url: '/leads', icon: Users },
   { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
   { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
+  { title: 'Admin', url: '/admin', icon: Shield, adminOnly: true },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const { user, logout } = useAuth();
+  const { profile, isAdmin, logout } = useAuth();
   const pendingCount = getOverdueTasks().length + getTodayTasks().length;
+  const visibleItems = navItems.filter(item => !('adminOnly' in item) || isAdmin);
 
   return (
     <Sidebar collapsible="icon">
@@ -41,7 +43,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {visibleItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -70,8 +72,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-3">
-        {!collapsed && user && (
-          <p className="text-xs text-sidebar-foreground mb-2 truncate">{user.name}</p>
+        {!collapsed && profile && (
+          <p className="text-xs text-sidebar-foreground mb-2 truncate">{profile.name}</p>
         )}
         <SidebarMenuButton onClick={logout} className="flex items-center gap-3 text-sidebar-foreground hover:text-destructive cursor-pointer">
           <LogOut className="h-4 w-4" />
