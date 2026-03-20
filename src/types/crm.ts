@@ -80,6 +80,7 @@ export const TASK_TYPE_LABELS: Record<TaskType, string> = {
   proposta: 'Enviar Proposta',
   diagnostico: 'Diagnóstico',
   lembrete: 'Lembrete',
+  mensagem: 'Mensagem',
 };
 
 export const PIPELINE_COLUMNS: { status: LeadStatus; label: string; color: string }[] = [
