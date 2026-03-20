@@ -200,6 +200,13 @@ export default function Financeiro() {
         </Card>
         <Card className="p-4">
           <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Retiradas</p>
+            <ArrowDownRight className="w-5 h-5 text-orange-500" />
+          </div>
+          <p className="text-2xl font-bold mt-1 text-orange-500">{fmt(stats.totalRetirada)}</p>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">Lucro Líquido</p>
             <Wallet className="w-5 h-5 text-primary" />
           </div>
