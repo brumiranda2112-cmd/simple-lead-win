@@ -1,4 +1,4 @@
-import { Lead, Task, Activity, CrmUser, LeadStatus } from '@/types/crm';
+import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction } from '@/types/crm';
 
 const KEYS = {
   USER: 'crm_user',
@@ -6,6 +6,7 @@ const KEYS = {
   LEADS: 'crm_leads',
   TASKS: 'crm_tasks',
   ACTIVITIES: 'crm_activities',
+  TRANSACTIONS: 'crm_transactions',
 };
 
 function uid(): string {
@@ -175,4 +176,56 @@ function addActivity(leadId: string, type: Activity['type'], description: string
   const activities = getActivities();
   activities.push({ id: uid(), leadId, type, description, metadata, createdAt: now() });
   set(KEYS.ACTIVITIES, activities);
+}
+
+// ===== TRANSACTIONS =====
+export function getTransactions(): Transaction[] {
+  return get<Transaction[]>(KEYS.TRANSACTIONS, []);
+}
+
+export function createTransaction(data: Omit<Transaction, 'id' | 'createdAt'>): Transaction {
+  const txns = getTransactions();
+  const txn: Transaction = { ...data, id: uid(), createdAt: now() };
+  txns.push(txn);
+  set(KEYS.TRANSACTIONS, txns);
+  return txn;
+}
+
+export function updateTransaction(id: string, data: Partial<Transaction>): Transaction | null {
+  const txns = getTransactions();
+  const idx = txns.findIndex(t => t.id === id);
+  if (idx === -1) return null;
+  txns[idx] = { ...txns[idx], ...data };
+  set(KEYS.TRANSACTIONS, txns);
+  return txns[idx];
+}
+
+export function deleteTransaction(id: string) {
+  set(KEYS.TRANSACTIONS, getTransactions().filter(t => t.id !== id));
+}
+
+// Auto-generate revenue from leads with contrato_fechado status
+export function syncRevenueFromLeads() {
+  const leads = getLeads();
+  const txns = getTransactions();
+  const closedLeads = leads.filter(l => 
+    ['contrato_fechado', 'desenvolvimento', 'periodo_ajustes', 'finalizado'].includes(l.status) && l.estimatedValue > 0
+  );
+  
+  closedLeads.forEach(lead => {
+    const exists = txns.some(t => t.leadId === lead.id && t.type === 'receita');
+    if (!exists) {
+      createTransaction({
+        type: 'receita',
+        category: 'contrato',
+        description: `Contrato: ${lead.name}`,
+        value: lead.estimatedValue,
+        date: lead.updatedAt.split('T')[0],
+        leadId: lead.id,
+        responsible: lead.responsible as any,
+        recurring: false,
+        notes: '',
+      });
+    }
+  });
 }

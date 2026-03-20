@@ -1,4 +1,4 @@
-import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut } from 'lucide-react';
+import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut, DollarSign } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getOverdueTasks, getTodayTasks } from '@/lib/storage';
@@ -22,6 +22,7 @@ const navItems = [
   { title: 'Pipeline', url: '/pipeline', icon: Kanban },
   { title: 'Leads', url: '/leads', icon: Users },
   { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
+  { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
 ];
 
 export function AppSidebar() {

@@ -43,6 +43,42 @@ export interface Activity {
   createdAt: string;
 }
 
+export type TransactionType = 'receita' | 'despesa';
+export type ExpenseCategory = 'salarios' | 'ferramentas' | 'infraestrutura' | 'marketing' | 'impostos' | 'servicos' | 'outros';
+export type RevenueCategory = 'contrato' | 'consultoria' | 'recorrente' | 'avulso' | 'outros';
+
+export interface Transaction {
+  id: string;
+  type: TransactionType;
+  category: ExpenseCategory | RevenueCategory;
+  description: string;
+  value: number;
+  date: string;
+  leadId?: string;  // linked to a lead (auto or manual)
+  responsible?: LeadResponsible;
+  recurring: boolean;
+  notes: string;
+  createdAt: string;
+}
+
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  salarios: 'Salários',
+  ferramentas: 'Ferramentas & Software',
+  infraestrutura: 'Infraestrutura',
+  marketing: 'Marketing',
+  impostos: 'Impostos',
+  servicos: 'Serviços Terceiros',
+  outros: 'Outros',
+};
+
+export const REVENUE_CATEGORY_LABELS: Record<RevenueCategory, string> = {
+  contrato: 'Contrato Fechado',
+  consultoria: 'Consultoria',
+  recorrente: 'Receita Recorrente',
+  avulso: 'Serviço Avulso',
+  outros: 'Outros',
+};
+
 export interface CrmUser {
   email: string;
   name: string;

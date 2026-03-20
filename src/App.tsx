@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Pipeline from "./pages/Pipeline";
 import Leads from "./pages/Leads";
 import Tasks from "./pages/Tasks";
+import Financeiro from "./pages/Financeiro";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ function ProtectedRoutes() {
         <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/leads" element={<Leads />} />
         <Route path="/tasks" element={<Tasks />} />
+        <Route path="/financeiro" element={<Financeiro />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
