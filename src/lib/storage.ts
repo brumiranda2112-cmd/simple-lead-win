@@ -6,6 +6,7 @@ const KEYS = {
   LEADS: 'crm_leads',
   TASKS: 'crm_tasks',
   ACTIVITIES: 'crm_activities',
+  TRANSACTIONS: 'crm_transactions',
 };
 
 function uid(): string {
