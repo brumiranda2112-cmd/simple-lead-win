@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import khronosIcon from '@/assets/khronos-icon.png';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import * as storage from '@/lib/storage';
@@ -306,7 +307,7 @@ export function CeoBot() {
           open && 'scale-0 opacity-0 pointer-events-none'
         )}
       >
-        <Sparkles className="w-6 h-6" />
+        <img src={khronosIcon} alt="KHRÓNOS CEO" className="w-9 h-9 rounded-full object-cover" />
       </button>
 
       {/* Chat panel */}
@@ -320,9 +321,7 @@ export function CeoBot() {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-amber-500/10 to-orange-500/10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
+            <img src={khronosIcon} alt="KHRÓNOS" className="w-9 h-9 rounded-full object-cover" />
             <div>
               <h3 className="text-sm font-semibold text-foreground">KHRÓNOS CEO</h3>
               <p className="text-[11px] text-muted-foreground">Assistente inteligente do CRM</p>
@@ -338,9 +337,7 @@ export function CeoBot() {
           {messages.map((msg, i) => (
             <div key={i} className={cn('flex gap-2', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
               {msg.role === 'assistant' && (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
+                <img src={khronosIcon} alt="K" className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5" />
               )}
               <div className={cn(
                 'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
@@ -372,9 +369,7 @@ export function CeoBot() {
 
           {isLoading && (
             <div className="flex gap-2 items-center">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
+              <img src={khronosIcon} alt="K" className="w-7 h-7 rounded-full object-cover shrink-0" />
               <div className="bg-secondary/70 rounded-2xl rounded-bl-md px-4 py-3">
                 <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
               </div>
