@@ -1,7 +1,7 @@
 export type LeadArea = 'agentes_ia' | 'automacoes' | 'sistemas' | 'consultoria' | 'outro';
 export type LeadSource = 'indicacao' | 'google' | 'instagram' | 'site' | 'linkedin' | 'outro';
 export type LeadStatus = 'cliente_novo' | 'diagnostico' | 'call_cliente' | 'mvp_sistema' | 'aprovacao_cliente' | 'contrato_fechado' | 'desenvolvimento' | 'periodo_ajustes' | 'finalizado';
-export type LeadResponsible = 'bruno' | 'gustavo';
+export type LeadResponsible = 'bruno' | 'gustavo' | 'ana_luiza';
 export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'lembrete' | 'mensagem';
 
 export interface Lead {
