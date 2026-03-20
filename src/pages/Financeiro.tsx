@@ -398,12 +398,14 @@ export default function Financeiro() {
                     <TableCell className="text-sm">
                       {txn.type === 'receita'
                         ? REVENUE_CATEGORY_LABELS[txn.category as RevenueCategory] || txn.category
+                        : txn.type === 'retirada'
+                        ? WITHDRAWAL_CATEGORY_LABELS[txn.category as WithdrawalCategory] || txn.category
                         : EXPENSE_CATEGORY_LABELS[txn.category as ExpenseCategory] || txn.category}
                     </TableCell>
                     <TableCell className="text-sm max-w-[200px] truncate">{txn.description}</TableCell>
                     <TableCell className="text-sm">{getLeadName(txn.leadId)}</TableCell>
                     <TableCell className="text-sm">{txn.responsible ? LEAD_RESPONSIBLE_LABELS[txn.responsible as LeadResponsible] : '-'}</TableCell>
-                    <TableCell className={`font-medium ${txn.type === 'receita' ? 'text-emerald-500' : 'text-red-500'}`}>
+                    <TableCell className={`font-medium ${txn.type === 'receita' ? 'text-emerald-500' : txn.type === 'retirada' ? 'text-orange-500' : 'text-red-500'}`}>
                       {txn.type === 'receita' ? '+' : '-'} {fmt(txn.value)}
                     </TableCell>
                     <TableCell className="text-right">
