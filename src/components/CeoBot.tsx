@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import khronosIcon from '@/assets/khronos-icon.png';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import * as storage from '@/lib/storage';
