@@ -80,6 +80,13 @@ export const REVENUE_CATEGORY_LABELS: Record<RevenueCategory, string> = {
   outros: 'Outros',
 };
 
+export const WITHDRAWAL_CATEGORY_LABELS: Record<WithdrawalCategory, string> = {
+  pro_labore: 'Pró-labore',
+  distribuicao_lucros: 'Distribuição de Lucros',
+  adiantamento: 'Adiantamento',
+  outros: 'Outros',
+};
+
 export interface CrmUser {
   email: string;
   name: string;
