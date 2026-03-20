@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { LeadForm } from '@/components/LeadForm';
 import { LeadDetails } from '@/components/LeadDetails';
-import { Plus, Search, Trash2, Pencil, Eye } from 'lucide-react';
+import { Plus, Search, Trash2, Pencil, Eye, MessageCircle } from 'lucide-react';
+import { openWhatsApp } from '@/lib/whatsapp';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function Leads() {
