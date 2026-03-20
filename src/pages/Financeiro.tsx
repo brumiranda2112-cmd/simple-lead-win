@@ -141,7 +141,8 @@ export default function Financeiro() {
       name: LEAD_RESPONSIBLE_LABELS[key as LeadResponsible] || 'Sem responsável',
       receita: val.receita,
       despesa: val.despesa,
-      lucro: val.receita - val.despesa,
+      retirada: val.retirada,
+      lucro: val.receita - val.despesa - val.retirada,
     }));
   }, [stats.byResponsible]);
 
