@@ -1,7 +1,7 @@
 export type LeadArea = 'agentes_ia' | 'automacoes' | 'sistemas' | 'consultoria' | 'outro';
 export type LeadSource = 'indicacao' | 'google' | 'instagram' | 'site' | 'linkedin' | 'outro';
 export type LeadStatus = 'novo' | 'contato_inicial' | 'qualificado' | 'proposta' | 'negociacao' | 'ganho' | 'perdido';
-export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'lembrete';
+export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'lembrete' | 'mensagem';
 
 export interface Lead {
   id: string;
@@ -80,6 +80,7 @@ export const TASK_TYPE_LABELS: Record<TaskType, string> = {
   proposta: 'Enviar Proposta',
   diagnostico: 'Diagnóstico',
   lembrete: 'Lembrete',
+  mensagem: 'Mensagem',
 };
 
 export const PIPELINE_COLUMNS: { status: LeadStatus; label: string; color: string }[] = [

@@ -1,20 +1,44 @@
 import { useState, useMemo } from 'react';
+import { format, isSameDay, parseISO, startOfDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Task, TASK_TYPE_LABELS, TaskType } from '@/types/crm';
 import * as storage from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TaskForm } from '@/components/TaskForm';
+import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Clock, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Clock, AlertTriangle, CheckCircle2, Trash2, CalendarDays, List, MessageSquare, Users, FileText, Bell, Phone } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Filter = 'all' | 'today' | 'overdue' | 'completed';
+
+const TYPE_ICONS: Record<TaskType, React.ReactNode> = {
+  followup: <Phone className="w-3.5 h-3.5" />,
+  reuniao: <Users className="w-3.5 h-3.5" />,
+  proposta: <FileText className="w-3.5 h-3.5" />,
+  diagnostico: <Clock className="w-3.5 h-3.5" />,
+  lembrete: <Bell className="w-3.5 h-3.5" />,
+  mensagem: <MessageSquare className="w-3.5 h-3.5" />,
+};
+
+const TYPE_COLORS: Record<TaskType, string> = {
+  followup: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+  reuniao: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+  proposta: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+  diagnostico: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',
+  lembrete: 'text-rose-400 bg-rose-400/10 border-rose-400/20',
+  mensagem: 'text-green-400 bg-green-400/10 border-green-400/20',
+};
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<Task[]>(storage.getTasks());
   const [filter, setFilter] = useState<Filter>('all');
   const [formOpen, setFormOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const leads = storage.getLeads();
   const today = new Date().toISOString().split('T')[0];
 
@@ -29,77 +53,214 @@ export default function Tasks() {
     }).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   }, [tasks, filter, today]);
 
+  const selectedDayTasks = useMemo(() => {
+    return tasks
+      .filter(t => {
+        try {
+          const taskDate = parseISO(t.dueDate);
+          return isSameDay(taskDate, selectedDate);
+        } catch { return false; }
+      })
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  }, [tasks, selectedDate]);
+
+  // Dates that have tasks (for calendar dots)
+  const taskDates = useMemo(() => {
+    const dates = new Map<string, { count: number; hasOverdue: boolean }>();
+    tasks.forEach(t => {
+      const key = t.dueDate.split('T')[0];
+      const existing = dates.get(key) || { count: 0, hasOverdue: false };
+      existing.count++;
+      if (!t.completed && key < today) existing.hasOverdue = true;
+      dates.set(key, existing);
+    });
+    return dates;
+  }, [tasks, today]);
+
   const handleComplete = (id: string) => { storage.completeTask(id); refresh(); };
   const handleDelete = (id: string) => { storage.deleteTask(id); refresh(); };
 
   const isOverdue = (t: Task) => !t.completed && t.dueDate.split('T')[0] < today;
   const isToday = (t: Task) => !t.completed && t.dueDate.split('T')[0] === today;
-
   const getLeadName = (leadId: string) => leads.find(l => l.id === leadId)?.name || 'Lead removido';
 
   const overdue = tasks.filter(t => isOverdue(t)).length;
   const todayCount = tasks.filter(t => isToday(t)).length;
   const pending = tasks.filter(t => !t.completed).length;
 
+  const TaskItem = ({ task }: { task: Task }) => (
+    <div
+      className={cn(
+        'flex items-center gap-3 p-3 rounded-lg border transition-all',
+        isOverdue(task) ? 'border-destructive/40 bg-destructive/5' :
+        isToday(task) ? 'border-amber-500/40 bg-amber-500/5' :
+        task.completed ? 'border-border/50 bg-muted/30 opacity-60' :
+        'border-border bg-card hover:bg-accent/5'
+      )}
+    >
+      <Checkbox
+        checked={task.completed}
+        onCheckedChange={() => handleComplete(task.id)}
+        className="h-5 w-5 shrink-0"
+        disabled={task.completed}
+      />
+      <div className={cn('p-1.5 rounded-md border shrink-0', TYPE_COLORS[task.type as TaskType])}>
+        {TYPE_ICONS[task.type as TaskType]}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className={cn('font-medium text-sm truncate', task.completed && 'line-through text-muted-foreground')}>
+            {task.title}
+          </span>
+          {isOverdue(task) && <Badge variant="destructive" className="text-[10px] shrink-0">Atrasada</Badge>}
+          {isToday(task) && <Badge className="text-[10px] bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0">Hoje</Badge>}
+        </div>
+        <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+          <span className="truncate">{getLeadName(task.leadId)}</span>
+          <span className="shrink-0">{new Date(task.dueDate).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+        {task.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{task.description}</p>}
+      </div>
+      <Button size="icon" variant="ghost" className="text-destructive/60 hover:text-destructive shrink-0 h-8 w-8" onClick={() => handleDelete(task.id)}>
+        <Trash2 className="w-3.5 h-3.5" />
+      </Button>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Tarefas</h1>
-        <Button onClick={() => setFormOpen(true)}><Plus className="w-4 h-4 mr-2" />Nova Tarefa</Button>
+        <h1 className="text-2xl font-bold">Tarefas & Agenda</h1>
+        <Button onClick={() => setFormOpen(true)} className="bg-primary hover:bg-primary/90">
+          <Plus className="w-4 h-4 mr-2" />Nova Tarefa
+        </Button>
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 text-sm">
+      <div className="flex gap-4 text-sm flex-wrap">
         <div className="flex items-center gap-2 text-muted-foreground"><Clock className="w-4 h-4" />Pendentes: <span className="text-foreground font-medium">{pending}</span></div>
-        <div className="flex items-center gap-2 text-warning"><AlertTriangle className="w-4 h-4" />Atrasadas: <span className="font-medium">{overdue}</span></div>
+        <div className="flex items-center gap-2 text-destructive"><AlertTriangle className="w-4 h-4" />Atrasadas: <span className="font-medium">{overdue}</span></div>
         <div className="flex items-center gap-2 text-primary"><CheckCircle2 className="w-4 h-4" />Hoje: <span className="font-medium">{todayCount}</span></div>
       </div>
 
-      {/* Filter */}
-      <Select value={filter} onValueChange={v => setFilter(v as Filter)}>
-        <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Pendentes</SelectItem>
-          <SelectItem value="today">Hoje</SelectItem>
-          <SelectItem value="overdue">Atrasadas</SelectItem>
-          <SelectItem value="completed">Concluídas</SelectItem>
-        </SelectContent>
-      </Select>
+      <Tabs defaultValue="agenda" className="w-full">
+        <TabsList className="bg-muted/50">
+          <TabsTrigger value="agenda" className="gap-2"><CalendarDays className="w-4 h-4" />Agenda</TabsTrigger>
+          <TabsTrigger value="lista" className="gap-2"><List className="w-4 h-4" />Lista</TabsTrigger>
+        </TabsList>
 
-      {/* Task list */}
-      <div className="space-y-2">
-        {filtered.length === 0 ? (
-          <p className="text-center text-muted-foreground py-10">Nenhuma tarefa encontrada</p>
-        ) : filtered.map(task => (
-          <div
-            key={task.id}
-            className={`flex items-center gap-4 p-4 rounded-lg border transition-colors ${isOverdue(task) ? 'border-destructive/40 bg-destructive/5' : isToday(task) ? 'border-warning/40 bg-warning/5' : 'border-border bg-card'}`}
-          >
-            <Checkbox
-              checked={task.completed}
-              onCheckedChange={() => handleComplete(task.id)}
-              className="h-5 w-5"
-              disabled={task.completed}
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className={`font-medium text-sm ${task.completed ? 'line-through text-muted-foreground' : ''}`}>{task.title}</span>
-                <Badge variant="outline" className="text-[10px]">{TASK_TYPE_LABELS[task.type as TaskType]}</Badge>
-                {isOverdue(task) && <Badge variant="destructive" className="text-[10px]">Atrasada</Badge>}
-                {isToday(task) && <Badge className="text-[10px] bg-warning text-warning-foreground">Hoje</Badge>}
+        {/* ===== AGENDA TAB ===== */}
+        <TabsContent value="agenda" className="mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
+            {/* Calendar */}
+            <div className="bg-card border border-border rounded-xl p-4">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(d) => d && setSelectedDate(d)}
+                locale={ptBR}
+                className="p-0 pointer-events-auto"
+                modifiers={{
+                  hasTasks: (date) => {
+                    const key = format(date, 'yyyy-MM-dd');
+                    return taskDates.has(key);
+                  },
+                  hasOverdue: (date) => {
+                    const key = format(date, 'yyyy-MM-dd');
+                    return taskDates.get(key)?.hasOverdue ?? false;
+                  },
+                }}
+                modifiersStyles={{
+                  hasTasks: {
+                    fontWeight: 700,
+                    textDecoration: 'underline',
+                    textDecorationColor: 'hsl(25, 95%, 53%)',
+                    textUnderlineOffset: '4px',
+                  },
+                  hasOverdue: {
+                    fontWeight: 700,
+                    textDecoration: 'underline',
+                    textDecorationColor: 'hsl(0, 84%, 60%)',
+                    textUnderlineOffset: '4px',
+                  },
+                }}
+              />
+
+              {/* Legend */}
+              <div className="mt-4 pt-3 border-t border-border space-y-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-0.5 bg-primary rounded" />
+                  <span>Dia com tarefas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-0.5 bg-destructive rounded" />
+                  <span>Tarefas atrasadas</span>
+                </div>
               </div>
-              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                <span>{getLeadName(task.leadId)}</span>
-                <span>{new Date(task.dueDate).toLocaleString('pt-BR')}</span>
+
+              {/* Quick type filter */}
+              <div className="mt-4 pt-3 border-t border-border">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Tipos de tarefa</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {Object.entries(TASK_TYPE_LABELS).map(([key, label]) => (
+                    <div key={key} className={cn('flex items-center gap-1 px-2 py-1 rounded-md border text-[11px]', TYPE_COLORS[key as TaskType])}>
+                      {TYPE_ICONS[key as TaskType]}
+                      {label}
+                    </div>
+                  ))}
+                </div>
               </div>
-              {task.description && <p className="text-xs text-muted-foreground mt-1">{task.description}</p>}
             </div>
-            <Button size="icon" variant="ghost" className="text-destructive shrink-0" onClick={() => handleDelete(task.id)}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
+
+            {/* Day tasks */}
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-lg font-semibold">
+                  {isSameDay(selectedDate, new Date())
+                    ? 'Hoje'
+                    : format(selectedDate, "d 'de' MMMM, yyyy", { locale: ptBR })}
+                </h2>
+                <Badge variant="outline" className="text-xs">
+                  {selectedDayTasks.length} tarefa{selectedDayTasks.length !== 1 ? 's' : ''}
+                </Badge>
+              </div>
+
+              {selectedDayTasks.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
+                  <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Nenhuma tarefa para este dia</p>
+                  <Button variant="link" className="mt-2 text-primary" onClick={() => setFormOpen(true)}>
+                    + Criar tarefa
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {selectedDayTasks.map(task => <TaskItem key={task.id} task={task} />)}
+                </div>
+              )}
+            </div>
           </div>
-        ))}
-      </div>
+        </TabsContent>
+
+        {/* ===== LIST TAB ===== */}
+        <TabsContent value="lista" className="mt-4">
+          <Select value={filter} onValueChange={v => setFilter(v as Filter)}>
+            <SelectTrigger className="w-[200px] mb-4"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Pendentes</SelectItem>
+              <SelectItem value="today">Hoje</SelectItem>
+              <SelectItem value="overdue">Atrasadas</SelectItem>
+              <SelectItem value="completed">Concluídas</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="space-y-2">
+            {filtered.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Nenhuma tarefa encontrada</p>
+            ) : filtered.map(task => <TaskItem key={task.id} task={task} />)}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Task form - need to select lead */}
       {formOpen && (
