@@ -236,7 +236,7 @@ export default function Financeiro() {
           <Card key={key} className="p-4">
             <p className="text-sm text-muted-foreground">{LEAD_RESPONSIBLE_LABELS[key as LeadResponsible] || 'Sem responsável'}</p>
             <p className="text-xl font-bold mt-1 text-emerald-500">{fmt(val.receita)}</p>
-            <p className="text-xs text-muted-foreground">Despesas: {fmt(val.despesa)}</p>
+            <p className="text-xs text-muted-foreground">Despesas: {fmt(val.despesa)} | Retirada: {fmt(val.retirada)}</p>
           </Card>
         ))}
       </div>
