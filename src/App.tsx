@@ -27,6 +27,7 @@ function ProtectedRoutes() {
         <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/leads" element={<Leads />} />
         <Route path="/tasks" element={<Tasks />} />
+        <Route path="/financeiro" element={<Financeiro />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
