@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Transaction, TransactionType, ExpenseCategory, RevenueCategory, EXPENSE_CATEGORY_LABELS, REVENUE_CATEGORY_LABELS, LEAD_RESPONSIBLE_LABELS, LeadResponsible } from '@/types/crm';
+import { Transaction, TransactionType, ExpenseCategory, RevenueCategory, WithdrawalCategory, EXPENSE_CATEGORY_LABELS, REVENUE_CATEGORY_LABELS, WITHDRAWAL_CATEGORY_LABELS, LEAD_RESPONSIBLE_LABELS, LeadResponsible } from '@/types/crm';
 import * as storage from '@/lib/storage';
 
 interface Props {
