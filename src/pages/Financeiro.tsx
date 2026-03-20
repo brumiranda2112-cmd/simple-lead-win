@@ -63,13 +63,15 @@ export default function Financeiro() {
   const stats = useMemo(() => {
     const receitas = filteredTxns.filter(t => t.type === 'receita');
     const despesas = filteredTxns.filter(t => t.type === 'despesa');
+    const retiradas = filteredTxns.filter(t => t.type === 'retirada');
     const totalReceita = receitas.reduce((s, t) => s + t.value, 0);
     const totalDespesa = despesas.reduce((s, t) => s + t.value, 0);
-    const lucro = totalReceita - totalDespesa;
+    const totalRetirada = retiradas.reduce((s, t) => s + t.value, 0);
+    const lucro = totalReceita - totalDespesa - totalRetirada;
     const margem = totalReceita > 0 ? ((lucro / totalReceita) * 100).toFixed(1) : '0';
 
     // Monthly recurring
-    const recorrente = transactions.filter(t => t.recurring).reduce((s, t) => s + (t.type === 'despesa' ? -t.value : t.value), 0);
+    const recorrente = transactions.filter(t => t.recurring).reduce((s, t) => s + (t.type !== 'receita' ? -t.value : t.value), 0);
 
     // Forecast from pipeline
     const forecast = leads
@@ -77,14 +79,16 @@ export default function Financeiro() {
       .reduce((s, l) => s + l.estimatedValue * (STAGE_PROBABILITY[l.status] || 0.1), 0);
 
     // By responsible
-    const byResponsible: Record<string, { receita: number; despesa: number }> = {};
+    const byResponsible: Record<string, { receita: number; despesa: number; retirada: number }> = {};
     filteredTxns.forEach(t => {
       const r = t.responsible || 'sem_responsavel';
-      if (!byResponsible[r]) byResponsible[r] = { receita: 0, despesa: 0 };
-      byResponsible[r][t.type] += t.value;
+      if (!byResponsible[r]) byResponsible[r] = { receita: 0, despesa: 0, retirada: 0 };
+      if (t.type === 'receita') byResponsible[r].receita += t.value;
+      else if (t.type === 'retirada') byResponsible[r].retirada += t.value;
+      else byResponsible[r].despesa += t.value;
     });
 
-    return { totalReceita, totalDespesa, lucro, margem, recorrente, forecast, byResponsible };
+    return { totalReceita, totalDespesa, totalRetirada, lucro, margem, recorrente, forecast, byResponsible };
   }, [filteredTxns, leads, transactions]);
 
   // Charts data
