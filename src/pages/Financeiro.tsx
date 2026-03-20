@@ -34,7 +34,7 @@ export default function Financeiro() {
   const [formOpen, setFormOpen] = useState(false);
   const [editTxn, setEditTxn] = useState<Transaction | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [defaultType, setDefaultType] = useState<'receita' | 'despesa'>('despesa');
+  const [defaultType, setDefaultType] = useState<TransactionType>('despesa');
   const [period, setPeriod] = useState('all');
 
   const leads = storage.getLeads();
