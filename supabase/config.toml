@@ -1,0 +1,4 @@
+project_id = "fbrafriqdyuntxmgpkxz"
+
+[functions.ceo-bot]
+verify_jwt = false
