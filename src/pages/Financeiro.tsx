@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import * as storage from '@/lib/storage';
-import { Transaction, EXPENSE_CATEGORY_LABELS, REVENUE_CATEGORY_LABELS, LEAD_RESPONSIBLE_LABELS, LeadResponsible, ExpenseCategory, RevenueCategory, PIPELINE_COLUMNS } from '@/types/crm';
+import { Transaction, TransactionType, EXPENSE_CATEGORY_LABELS, REVENUE_CATEGORY_LABELS, WITHDRAWAL_CATEGORY_LABELS, LEAD_RESPONSIBLE_LABELS, LeadResponsible, ExpenseCategory, RevenueCategory, WithdrawalCategory, PIPELINE_COLUMNS } from '@/types/crm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
