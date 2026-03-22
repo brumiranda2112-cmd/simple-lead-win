@@ -12,6 +12,8 @@ import Pipeline from "./pages/Pipeline";
 import Leads from "./pages/Leads";
 import Tasks from "./pages/Tasks";
 import Financeiro from "./pages/Financeiro";
+import Agendamentos from "./pages/Agendamentos";
+import Agendar from "./pages/Agendar";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -35,6 +37,7 @@ function ProtectedRoutes() {
         <Route path="/leads" element={<Leads />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/financeiro" element={<Financeiro />} />
+        <Route path="/agendamentos" element={<Agendamentos />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -51,6 +54,7 @@ function AppRoutes() {
   );
   return (
     <Routes>
+      <Route path="/agendar" element={<Agendar />} />
       <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
