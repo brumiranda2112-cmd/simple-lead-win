@@ -54,6 +54,7 @@ function AppRoutes() {
   );
   return (
     <Routes>
+      <Route path="/agendar" element={<Agendar />} />
       <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
