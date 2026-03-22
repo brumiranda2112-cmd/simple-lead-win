@@ -37,6 +37,7 @@ function ProtectedRoutes() {
         <Route path="/leads" element={<Leads />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/financeiro" element={<Financeiro />} />
+        <Route path="/agendamentos" element={<Agendamentos />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
