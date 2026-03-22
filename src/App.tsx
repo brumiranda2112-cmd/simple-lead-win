@@ -12,6 +12,8 @@ import Pipeline from "./pages/Pipeline";
 import Leads from "./pages/Leads";
 import Tasks from "./pages/Tasks";
 import Financeiro from "./pages/Financeiro";
+import Agendamentos from "./pages/Agendamentos";
+import Agendar from "./pages/Agendar";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
