@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarDays, Clock, Settings, Plus, Trash2, Copy, ExternalLink, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { BookingCalendar } from '@/components/BookingCalendar';
 
 const DAY_LABELS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
@@ -136,12 +137,17 @@ export default function Agendamentos() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="bookings">
+      <Tabs defaultValue="calendar">
         <TabsList>
-          <TabsTrigger value="bookings">Agendamentos</TabsTrigger>
+          <TabsTrigger value="calendar">Calendário</TabsTrigger>
+          <TabsTrigger value="bookings">Lista</TabsTrigger>
           <TabsTrigger value="types">Tipos de Reunião</TabsTrigger>
           <TabsTrigger value="availability">Disponibilidade</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="calendar">
+          <BookingCalendar bookings={bookings} />
+        </TabsContent>
 
         {/* Bookings list */}
         <TabsContent value="bookings" className="space-y-4">
