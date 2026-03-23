@@ -14,6 +14,7 @@ import Tasks from "./pages/Tasks";
 import Financeiro from "./pages/Financeiro";
 import Agendamentos from "./pages/Agendamentos";
 import Agendar from "./pages/Agendar";
+import WhatsAppInbox from "./pages/WhatsAppInbox";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
