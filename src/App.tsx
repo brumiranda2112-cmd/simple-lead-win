@@ -14,6 +14,7 @@ import Tasks from "./pages/Tasks";
 import Financeiro from "./pages/Financeiro";
 import Agendamentos from "./pages/Agendamentos";
 import Agendar from "./pages/Agendar";
+import WhatsAppInbox from "./pages/WhatsAppInbox";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -35,6 +36,7 @@ function ProtectedRoutes() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/leads" element={<Leads />} />
+        <Route path="/whatsapp" element={<WhatsAppInbox />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/financeiro" element={<Financeiro />} />
         <Route path="/agendamentos" element={<Agendamentos />} />
