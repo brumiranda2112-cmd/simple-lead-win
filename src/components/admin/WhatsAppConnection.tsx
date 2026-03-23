@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { evolutionApi } from '@/lib/evolutionProxy';
 import { Loader2, Wifi, WifiOff, QrCode, RefreshCw } from 'lucide-react';
 
 export default function WhatsAppConnection() {
@@ -15,16 +15,18 @@ export default function WhatsAppConnection() {
 
   const checkStatus = useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('whatsapp-send', {
-        body: { action: 'check_status' },
-      });
-      if (!error && data?.connected) {
-        setStatus('connected');
-        const p = data.phone || '';
-        setPhone(p.replace('@s.whatsapp.net', ''));
-        setShowQr(false);
-        setQrBase64(null);
-        return true;
+      const instances = await evolutionApi('instance/fetchInstances');
+      if (Array.isArray(instances) && instances.length > 0) {
+        const inst = instances.find((i: any) => i.instance?.instanceName === 'crm-whatsapp') || instances[0];
+        const connStatus = inst?.instance?.connectionStatus || inst?.instance?.state || '';
+        if (connStatus === 'open') {
+          const p = inst?.instance?.ownerJid || inst?.instance?.owner || '';
+          setPhone(p.replace('@s.whatsapp.net', ''));
+          setStatus('connected');
+          setShowQr(false);
+          setQrBase64(null);
+          return true;
+        }
       }
       setStatus('disconnected');
       return false;
@@ -42,15 +44,13 @@ export default function WhatsAppConnection() {
 
     const attempt = async (): Promise<void> => {
       try {
-        const { data, error } = await supabase.functions.invoke('whatsapp-send', {
-          body: { action: 'connect_qr' },
-        });
-        if (!error && data?.qr) {
-          setQrBase64(data.qr);
+        const data = await evolutionApi('instance/connect/crm-whatsapp');
+        const qr = data?.base64 || data?.qrcode?.base64 || data?.qr || data?.code || null;
+        if (qr) {
+          setQrBase64(qr);
           setFetching(false);
           return;
         }
-        // No QR yet, retry
         retryRef.current++;
         if (retryRef.current < 10) {
           retryTimerRef.current = setTimeout(attempt, 3000);
@@ -65,20 +65,17 @@ export default function WhatsAppConnection() {
     await attempt();
   }, []);
 
-  // Auto-refresh: check status every 20s while showing QR
   useEffect(() => {
     if (!showQr) return;
     const interval = setInterval(async () => {
       const connected = await checkStatus();
       if (!connected && !fetching && qrBase64) {
-        // refresh QR
         fetchQr();
       }
     }, 20000);
     return () => clearInterval(interval);
   }, [showQr, checkStatus, fetchQr, fetching, qrBase64]);
 
-  // Cleanup retry timer
   useEffect(() => {
     return () => { if (retryTimerRef.current) clearTimeout(retryTimerRef.current); };
   }, []);
@@ -90,7 +87,7 @@ export default function WhatsAppConnection() {
   };
 
   const handleDisconnect = async () => {
-    await supabase.functions.invoke('whatsapp-send', { body: { action: 'disconnect' } });
+    await evolutionApi('instance/logout/crm-whatsapp', 'DELETE');
     setStatus('disconnected');
     setPhone('');
   };
@@ -142,13 +139,13 @@ export default function WhatsAppConnection() {
             </p>
             <div className="flex justify-center">
               {qrBase64 ? (
-                <div className="bg-white p-4 rounded-lg">
-                  <img
-                    src={qrBase64.startsWith('data:') ? qrBase64 : `data:image/png;base64,${qrBase64}`}
-                    alt="QR Code"
-                    className="w-[280px] h-[280px]"
-                  />
-                </div>
+                <img
+                  src={qrBase64.startsWith('data:') ? qrBase64 : `data:image/png;base64,${qrBase64}`}
+                  alt="QR Code"
+                  width={280}
+                  height={280}
+                  style={{ background: 'white', padding: '16px', borderRadius: '8px' }}
+                />
               ) : (
                 <div className="w-[280px] h-[280px] flex flex-col items-center justify-center bg-muted/30 rounded-lg gap-2">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

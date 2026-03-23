@@ -18,6 +18,15 @@ export async function sendMedia(phone: string, mediaUrl: string, type: string, c
   return data;
 }
 
+export async function sendAudio(phone: string, audioBase64: string) {
+  const { data, error } = await supabase.functions.invoke("whatsapp-send", {
+    body: { phone, mediaUrl: audioBase64, type: "audio" },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
 export async function uploadMedia(file: File): Promise<string> {
   const ext = file.name.split(".").pop() || "bin";
   const path = `${crypto.randomUUID()}.${ext}`;
