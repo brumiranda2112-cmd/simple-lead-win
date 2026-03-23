@@ -63,6 +63,7 @@ function executeActions(actions: CrmAction[]): string[] {
           status: d.status || 'cliente_novo',
           notes: d.notes || '',
           nextFollowup: d.nextFollowup || null,
+          leadType: 'lead',
           wonLostReason: '',
         });
         results.push(`✅ Lead "${d.name}" criado com sucesso!`);
