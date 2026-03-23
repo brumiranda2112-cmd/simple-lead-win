@@ -136,6 +136,27 @@ export type Database = {
           },
         ]
       }
+      labels: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -169,6 +190,27 @@ export type Database = {
         }
         Relationships: []
       }
+      quick_replies: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          title?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           id: string
@@ -186,6 +228,47 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
+      }
+      scheduled_messages: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          message: string
+          phone: string
+          scheduled_at: string
+          sent: boolean | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          message: string
+          phone: string
+          scheduled_at: string
+          sent?: boolean | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          message?: string
+          phone?: string
+          scheduled_at?: string
+          sent?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -212,6 +295,7 @@ export type Database = {
           contact_photo: string | null
           created_at: string | null
           id: string
+          labels: string[] | null
           last_message: string | null
           last_message_at: string | null
           lead_id: string | null
@@ -227,6 +311,7 @@ export type Database = {
           contact_photo?: string | null
           created_at?: string | null
           id?: string
+          labels?: string[] | null
           last_message?: string | null
           last_message_at?: string | null
           lead_id?: string | null
@@ -242,6 +327,7 @@ export type Database = {
           contact_photo?: string | null
           created_at?: string | null
           id?: string
+          labels?: string[] | null
           last_message?: string | null
           last_message_at?: string | null
           lead_id?: string | null

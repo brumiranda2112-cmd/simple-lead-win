@@ -29,33 +29,56 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
 
-    const { phone, message, type, mediaUrl, caption, mimetype, fileName } = await req.json();
+    const payload = await req.json();
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL") || "http://191.252.182.221:8080";
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY")!;
     const INSTANCE = "crm-whatsapp";
 
+    // ── Status / QR actions ──
+    if (payload.action === "check_status") {
+      const res = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
+        headers: { apikey: EVOLUTION_API_KEY },
+      });
+      const instances = await res.json();
+      const inst = Array.isArray(instances)
+        ? instances.find((i: any) => i.instance?.instanceName === INSTANCE)
+        : null;
+      const connected = inst?.instance?.state === "open" || inst?.instance?.connectionStatus === "open";
+      const phone = inst?.instance?.owner || "";
+      return new Response(JSON.stringify({ connected, phone }), { headers: corsHeaders });
+    }
+
+    if (payload.action === "connect_qr") {
+      const res = await fetch(`${EVOLUTION_API_URL}/instance/connect/${INSTANCE}`, {
+        headers: { apikey: EVOLUTION_API_KEY },
+      });
+      const data = await res.json();
+      const qr = data?.base64 || data?.qrcode?.base64 || data?.qr || null;
+      return new Response(JSON.stringify({ qr }), { headers: corsHeaders });
+    }
+
+    if (payload.action === "disconnect") {
+      await fetch(`${EVOLUTION_API_URL}/instance/logout/${INSTANCE}`, {
+        method: "DELETE",
+        headers: { apikey: EVOLUTION_API_KEY },
+      });
+      return new Response(JSON.stringify({ ok: true }), { headers: corsHeaders });
+    }
+
+    // ── Send message ──
+    const { phone, message, type, mediaUrl, caption, mimetype, fileName } = payload;
     const formattedPhone = phone.replace(/\D/g, "");
 
     let endpoint: string;
     let body: Record<string, unknown>;
 
     if (type === "text") {
-      // Evolution API v1.8.2 text format
       endpoint = `${EVOLUTION_API_URL}/message/sendText/${INSTANCE}`;
-      body = {
-        number: formattedPhone,
-        textMessage: { text: message },
-      };
+      body = { number: formattedPhone, textMessage: { text: message } };
     } else if (type === "audio") {
-      // Evolution API v1.8.2 audio format
       endpoint = `${EVOLUTION_API_URL}/message/sendWhatsAppAudio/${INSTANCE}`;
-      body = {
-        number: formattedPhone,
-        audio: mediaUrl,
-        encoding: true,
-      };
+      body = { number: formattedPhone, audio: mediaUrl, encoding: true };
     } else {
-      // Evolution API v1.8.2 media format (image/video/document)
       endpoint = `${EVOLUTION_API_URL}/message/sendMedia/${INSTANCE}`;
       body = {
         number: formattedPhone,
@@ -69,68 +92,43 @@ Deno.serve(async (req) => {
 
     const evoRes = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: EVOLUTION_API_KEY,
-      },
+      headers: { "Content-Type": "application/json", apikey: EVOLUTION_API_KEY },
       body: JSON.stringify(body),
     });
 
     const evoData = await evoRes.json();
-
     if (!evoRes.ok) {
       console.error("Evolution API error:", JSON.stringify(evoData));
-      return new Response(JSON.stringify({ error: "Evolution API error", details: evoData }), {
-        status: 500,
-        headers: corsHeaders,
-      });
+      return new Response(JSON.stringify({ error: "Evolution API error", details: evoData }), { status: 500, headers: corsHeaders });
     }
 
     // Save sent message to DB
-    const serviceSupabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const serviceSupabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Get or create conversation
     const { data: conv } = await serviceSupabase
-      .from("whatsapp_conversations")
-      .select("id")
-      .eq("phone", formattedPhone)
-      .maybeSingle();
+      .from("whatsapp_conversations").select("id").eq("phone", formattedPhone).maybeSingle();
 
     const msgPreview = type === "text" ? message : (caption || `📎 ${type}`);
-
     let conversationId: string;
+
     if (conv) {
       conversationId = conv.id;
       await serviceSupabase.from("whatsapp_conversations").update({
-        last_message: msgPreview,
-        last_message_at: new Date().toISOString(),
-        unread_count: 0,
+        last_message: msgPreview, last_message_at: new Date().toISOString(), unread_count: 0,
       }).eq("id", conversationId);
     } else {
       const { data: newConv } = await serviceSupabase.from("whatsapp_conversations").insert({
-        phone: formattedPhone,
-        contact_name: formattedPhone,
-        last_message: msgPreview,
-        last_message_at: new Date().toISOString(),
-        unread_count: 0,
-        status: "open",
+        phone: formattedPhone, contact_name: formattedPhone,
+        last_message: msgPreview, last_message_at: new Date().toISOString(), unread_count: 0, status: "open",
       }).select("id").single();
       conversationId = newConv!.id;
     }
 
     await serviceSupabase.from("whatsapp_messages").insert({
-      conversation_id: conversationId,
-      phone: formattedPhone,
+      conversation_id: conversationId, phone: formattedPhone,
       body: type === "text" ? message : (caption || `📎 ${type}`),
-      from_me: true,
-      type,
-      media_url: type !== "text" ? mediaUrl : null,
-      media_type: type !== "text" ? type : null,
-      timestamp: new Date().toISOString(),
-      status: "sent",
+      from_me: true, type, media_url: type !== "text" ? mediaUrl : null,
+      media_type: type !== "text" ? type : null, timestamp: new Date().toISOString(), status: "sent",
     });
 
     return new Response(JSON.stringify({ ok: true, data: evoData }), { headers: corsHeaders });

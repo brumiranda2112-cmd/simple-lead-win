@@ -1,24 +1,27 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ArrowLeft, UserPlus, PhoneOff, ArrowRightLeft, MoreVertical, BellOff, Ban } from 'lucide-react';
+import { ArrowLeft, UserPlus, PhoneOff, ArrowRightLeft, MoreVertical, BellOff, Ban, Clock, Kanban } from 'lucide-react';
 import type { Conversation, Profile } from './types';
+import LabelsPicker from './LabelsPicker';
 
 interface Props {
   conversation: Conversation;
   profiles: Profile[];
   onBack: () => void;
   onCreateLead: () => void;
+  onCreateClient: () => void;
   onFinish: () => void;
   onTransfer: () => void;
   onPriorityChange: (priority: string) => void;
   onMarkUnread: () => void;
+  onSchedule: () => void;
+  onLabelsUpdate: (labels: string[]) => void;
 }
 
-export default function ChatHeader({ conversation, profiles, onBack, onCreateLead, onFinish, onTransfer, onPriorityChange, onMarkUnread }: Props) {
-  const assignedProfile = profiles.find(p => p.id === (conversation as any).assigned_to);
+export default function ChatHeader({ conversation, profiles, onBack, onCreateLead, onCreateClient, onFinish, onTransfer, onPriorityChange, onMarkUnread, onSchedule, onLabelsUpdate }: Props) {
+  const assignedProfile = profiles.find(p => p.id === conversation.assigned_to);
 
   return (
     <div className="flex items-center gap-2 p-3 border-b border-border/50 bg-card/50 flex-wrap">
@@ -42,7 +45,7 @@ export default function ChatHeader({ conversation, profiles, onBack, onCreateLea
       </div>
 
       <div className="flex items-center gap-1.5 flex-wrap">
-        <Select value={(conversation as any).priority || 'normal'} onValueChange={onPriorityChange}>
+        <Select value={conversation.priority || 'normal'} onValueChange={onPriorityChange}>
           <SelectTrigger className="h-8 w-[110px] text-xs bg-muted/30 border-border/50">
             <SelectValue />
           </SelectTrigger>
@@ -53,6 +56,12 @@ export default function ChatHeader({ conversation, profiles, onBack, onCreateLea
           </SelectContent>
         </Select>
 
+        <LabelsPicker
+          conversationId={conversation.id}
+          currentLabels={(conversation as any).labels || []}
+          onUpdate={onLabelsUpdate}
+        />
+
         <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={onTransfer}>
           <ArrowRightLeft className="h-3.5 w-3.5" /> Transferir
         </Button>
@@ -61,9 +70,21 @@ export default function ChatHeader({ conversation, profiles, onBack, onCreateLea
           <PhoneOff className="h-3.5 w-3.5" /> Finalizar
         </Button>
 
-        <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={onCreateLead}>
-          <UserPlus className="h-3.5 w-3.5" /> Lead
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 text-xs gap-1">
+              <Kanban className="h-3.5 w-3.5" /> Kanban
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onCreateLead}>
+              <UserPlus className="h-4 w-4 mr-2" /> Criar Lead
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onCreateClient}>
+              <UserPlus className="h-4 w-4 mr-2" /> Criar Cliente
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -72,6 +93,9 @@ export default function ChatHeader({ conversation, profiles, onBack, onCreateLea
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onSchedule}>
+              <Clock className="h-4 w-4 mr-2" /> Agendar Mensagem
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onMarkUnread}>
               <BellOff className="h-4 w-4 mr-2" /> Marcar como não lida
             </DropdownMenuItem>

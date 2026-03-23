@@ -35,8 +35,11 @@ export default function MessageBubble({ message: msg, onImageClick }: Props) {
         </div>
       );
     }
-    if (type === 'audio' && msg.media_url) {
-      return <audio src={msg.media_url} controls className="max-w-[240px]" />;
+    if ((type === 'audio' || type === 'ptt') && msg.media_url) {
+      return (
+        <audio controls src={msg.media_url}
+          className="max-w-xs w-full [&::-webkit-media-controls-panel]:bg-muted [&::-webkit-media-controls-current-time-display]:text-foreground [&::-webkit-media-controls-time-remaining-display]:text-foreground" />
+      );
     }
     if (type === 'document' && msg.media_url) {
       return (
