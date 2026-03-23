@@ -7,7 +7,7 @@ export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'le
 export type LeadPipelineStatus = 'lead_qualificado' | 'call_diagnostico' | 'proposta_implementacao' | 'call_fechamento' | 'proposta_honorarios' | 'fechado' | 'followup_d1' | 'followup_d2' | 'followup_d3' | 'followup_d4' | 'followup_d5' | 'followup_d6' | 'followup_d7' | 'followup_d8' | 'followup_d9' | 'followup_d10';
 
 // Client pipeline statuses (delivery)
-export type ClientPipelineStatus = 'cliente_novo' | 'diagnostico' | 'call_cliente' | 'mvp_sistema' | 'aprovacao_cliente' | 'contrato_fechado' | 'desenvolvimento' | 'periodo_ajustes' | 'finalizado';
+export type ClientPipelineStatus = 'cliente_novo' | 'mvp' | 'call_apresentacao' | 'aprovacao' | 'desenvolvimento_final' | 'entrega_cliente' | 'ajustes' | 'finalizado';
 
 // Combined status
 export type LeadStatus = LeadPipelineStatus | ClientPipelineStatus;
