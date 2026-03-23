@@ -114,11 +114,13 @@ export default function Agendar() {
     return slots;
   }, [selectedDate, selectedType, availability, existingBookings]);
 
-  const sendWhatsAppConfirmation = (phone: string, name: string, typeName: string, date: string, time: string) => {
-    const cleanPhone = phone.replace(/\D/g, '');
+  const getWhatsAppLink = () => {
+    if (!selectedType || !selectedDate || !selectedTime) return '#';
+    const cleanPhone = formData.phone.replace(/\D/g, '');
     const phoneNumber = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
-    const message = `✅ *Agendamento Confirmado!*\n\nOlá ${name}, seu agendamento foi confirmado com sucesso!\n\n📋 *Serviço:* ${typeName}\n📅 *Data:* ${date}\n🕐 *Horário:* ${time}\n\nEm caso de imprevisto, entre em contato para reagendar.\n\n_KHRÓNOS AI_`;
-    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    const dateStr = format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    const message = `✅ *Agendamento Confirmado!*\n\nOlá ${formData.name}, seu agendamento foi confirmado com sucesso!\n\n📋 *Serviço:* ${selectedType.name}\n📅 *Data:* ${dateStr}\n🕐 *Horário:* ${selectedTime}\n\nEm caso de imprevisto, entre em contato para reagendar.\n\n_KHRÓNOS AI_`;
+    return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
   };
 
   const handleSubmit = async () => {
@@ -141,9 +143,6 @@ export default function Agendar() {
     setSubmitting(false);
     if (!error) {
       setConfirmed(true);
-      // Send WhatsApp confirmation
-      const dateStr = format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-      sendWhatsAppConfirmation(formData.phone, formData.name, selectedType.name, dateStr, selectedTime);
     }
   };
 
@@ -160,18 +159,16 @@ export default function Agendar() {
             <p className="text-gray-400">
               {selectedType?.name} em {selectedDate && format(selectedDate, "dd 'de' MMMM", { locale: ptBR })} às {selectedTime}
             </p>
-            <div className="space-y-2 text-sm text-gray-400">
-              <p className="flex items-center justify-center gap-2">
-                <MessageCircle className="w-4 h-4 text-emerald-500" />
-                Confirmação enviada via WhatsApp
-              </p>
-              {formData.email && (
-                <p className="flex items-center justify-center gap-2">
-                  <Mail className="w-4 h-4 text-primary" />
-                  Confirmação enviada para {formData.email}
-                </p>
-              )}
-            </div>
+            <a
+              href={getWhatsAppLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+            >
+              <MessageCircle className="w-5 h-5" />
+              Enviar confirmação via WhatsApp
+            </a>
+            <p className="text-xs text-gray-500 mt-2">Clique para enviar a mensagem de confirmação</p>
           </CardContent>
         </Card>
       </div>
