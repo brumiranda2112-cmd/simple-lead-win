@@ -6,17 +6,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function normalizePhone(jid: string): { phone: string; isGroup: boolean } {
-  if (!jid) return { phone: '', isGroup: false };
+function normalizePhone(jid: string): { phone: string; isGroup: boolean; isLid: boolean } {
+  if (!jid) return { phone: '', isGroup: false, isLid: false };
   const isGroup = jid.includes('@g.us');
   if (isGroup) {
-    // Keep group ID intact but clean
     const groupId = jid.split('@')[0];
-    return { phone: groupId + '@g.us', isGroup: true };
+    return { phone: groupId + '@g.us', isGroup: true, isLid: false };
   }
-  // For regular contacts, strip everything except digits
+  // LID (Linked ID) JIDs are internal WhatsApp IDs, not real phone numbers
+  const isLid = jid.includes('@lid');
   const digits = jid.split('@')[0]?.replace(/[^0-9]/g, '') || '';
-  return { phone: digits, isGroup: false };
+  return { phone: digits, isGroup: false, isLid };
 }
 
 Deno.serve(async (req) => {
