@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Send, Search, User, Paperclip, UserPlus, ArrowLeft, Play, FileText, Image as ImageIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Send, Search, User, Paperclip, UserPlus, ArrowLeft, FileText, Check, CheckCheck, X } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { sendMessage, getConversations, getMessages, markAsRead } from '@/lib/whatsappService';
+import { sendMessage, sendMedia, uploadMedia, getConversations, getMessages, markAsRead, getMediaType } from '@/lib/whatsappService';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -25,6 +26,12 @@ function formatTime(dateStr: string | null) {
   return format(d, 'dd/MM', { locale: ptBR });
 }
 
+function StatusIcon({ status }: { status: string | null }) {
+  if (status === 'delivered' || status === 'read') return <CheckCheck className="h-3 w-3 inline-block ml-1" />;
+  if (status === 'sent') return <Check className="h-3 w-3 inline-block ml-1" />;
+  return null;
+}
+
 export default function WhatsAppInbox() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
@@ -35,7 +42,9 @@ export default function WhatsAppInbox() {
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [leadName, setLeadName] = useState('');
   const [leadEmail, setLeadEmail] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [mobileShowChat, setMobileShowChat] = useState(false);
 
   const loadConversations = useCallback(async () => {
@@ -56,11 +65,8 @@ export default function WhatsAppInbox() {
     }
   }, []);
 
-  useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
+  useEffect(() => { loadConversations(); }, [loadConversations]);
 
-  // Realtime subscriptions
   useEffect(() => {
     const channel = supabase
       .channel('whatsapp-realtime')
@@ -74,7 +80,6 @@ export default function WhatsAppInbox() {
         }
       })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [loadConversations, selectedConv]);
 
@@ -105,6 +110,30 @@ export default function WhatsAppInbox() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedConv) return;
+    setSending(true);
+    try {
+      const mediaType = getMediaType(file);
+      const url = await uploadMedia(file);
+      await sendMedia(selectedConv.phone, url, mediaType, '', file.type, file.name);
+      toast.success('Mídia enviada!');
+    } catch (err: any) {
+      toast.error('Erro ao enviar mídia: ' + err.message);
+    } finally {
+      setSending(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const handleCreateLead = () => {
     if (!selectedConv) return;
     const leads = JSON.parse(localStorage.getItem('crm_leads') || '[]');
@@ -122,7 +151,6 @@ export default function WhatsAppInbox() {
     };
     leads.push(newLead);
     localStorage.setItem('crm_leads', JSON.stringify(leads));
-    // Link lead_id to conversation
     supabase.from('whatsapp_conversations').update({ lead_id: newLead.id }).eq('id', selectedConv.id);
     toast.success('Lead criado com sucesso!');
     setShowLeadModal(false);
@@ -140,7 +168,12 @@ export default function WhatsAppInbox() {
     if (type === 'image' && msg.media_url) {
       return (
         <div>
-          <img src={msg.media_url} alt="imagem" className="max-w-[240px] rounded-lg mb-1" />
+          <img
+            src={msg.media_url}
+            alt="imagem"
+            className="max-w-[240px] rounded-lg mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setImagePreview(msg.media_url)}
+          />
           {msg.body && msg.body !== '📷 Imagem' && <p className="text-sm">{msg.body}</p>}
         </div>
       );
@@ -254,6 +287,7 @@ export default function WhatsAppInbox() {
                 {renderMessageContent(msg)}
                 <p className={`text-[10px] mt-1 text-right ${msg.from_me ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                   {msg.timestamp ? format(new Date(msg.timestamp), 'HH:mm') : ''}
+                  {msg.from_me && <StatusIcon status={msg.status} />}
                 </p>
               </div>
             </div>
@@ -264,14 +298,43 @@ export default function WhatsAppInbox() {
 
       {/* Input */}
       <div className="p-3 border-t border-border/50 bg-card/50">
-        <form onSubmit={e => { e.preventDefault(); handleSend(); }} className="flex items-center gap-2">
-          <Input value={newMsg} onChange={e => setNewMsg(e.target.value)}
+        <div className="flex items-end gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept="image/jpeg,image/png,image/gif,video/mp4,audio/mpeg,audio/ogg,application/pdf"
+            onChange={handleFileSelect}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="shrink-0 mb-0.5"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending}
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+          <Textarea
+            value={newMsg}
+            onChange={e => setNewMsg(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Digite uma mensagem..."
-            className="flex-1 bg-muted/30 border-border/50" disabled={sending} />
-          <Button type="submit" size="icon" disabled={sending || !newMsg.trim()} className="shrink-0">
+            className="flex-1 bg-muted/30 border-border/50 min-h-[40px] max-h-[120px] resize-none"
+            disabled={sending}
+            rows={1}
+          />
+          <Button
+            type="button"
+            size="icon"
+            disabled={sending || !newMsg.trim()}
+            className="shrink-0 mb-0.5"
+            onClick={handleSend}
+          >
             <Send className="h-4 w-4" />
           </Button>
-        </form>
+        </div>
       </div>
     </div>
   ) : (
@@ -286,7 +349,6 @@ export default function WhatsAppInbox() {
   return (
     <div className="h-[calc(100vh-3rem)] flex flex-col">
       <div className="flex-1 flex overflow-hidden rounded-lg border border-border/50 bg-card/30">
-        {/* Desktop: both panels. Mobile: toggle */}
         <div className={`w-full md:w-80 lg:w-96 shrink-0 ${mobileShowChat ? 'hidden md:flex md:flex-col' : 'flex flex-col'}`}>
           {convList}
         </div>
@@ -294,6 +356,18 @@ export default function WhatsAppInbox() {
           {chatView}
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      {imagePreview && (
+        <Dialog open={!!imagePreview} onOpenChange={() => setImagePreview(null)}>
+          <DialogContent className="max-w-3xl p-1">
+            <Button variant="ghost" size="icon" className="absolute right-2 top-2 z-10" onClick={() => setImagePreview(null)}>
+              <X className="h-4 w-4" />
+            </Button>
+            <img src={imagePreview} alt="preview" className="w-full h-auto rounded-lg" />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Create Lead Modal */}
       <Dialog open={showLeadModal} onOpenChange={setShowLeadModal}>

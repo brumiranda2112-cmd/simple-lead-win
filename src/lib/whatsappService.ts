@@ -1,48 +1,30 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const EVOLUTION_API_URL = "http://191.252.182.221:8080";
-const INSTANCE_NAME = "crm-whatsapp";
-
-async function getEvolutionHeaders() {
-  // Fetch API key from edge function proxy to avoid exposing in client
-  // For now we use the edge function to send messages
-  return {
-    "Content-Type": "application/json",
-  };
-}
-
 export async function sendMessage(phone: string, message: string) {
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const res = await fetch(
-    `https://${projectId}.supabase.co/functions/v1/whatsapp-send`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-      },
-      body: JSON.stringify({ phone, message, type: "text" }),
-    }
-  );
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  const { data, error } = await supabase.functions.invoke("whatsapp-send", {
+    body: { phone, message, type: "text" },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data;
 }
 
-export async function sendMedia(phone: string, mediaUrl: string, type: string, caption?: string) {
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const res = await fetch(
-    `https://${projectId}.supabase.co/functions/v1/whatsapp-send`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-      },
-      body: JSON.stringify({ phone, mediaUrl, type, caption }),
-    }
-  );
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+export async function sendMedia(phone: string, mediaUrl: string, type: string, caption?: string, mimetype?: string, fileName?: string) {
+  const { data, error } = await supabase.functions.invoke("whatsapp-send", {
+    body: { phone, mediaUrl, type, caption, mimetype, fileName },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+export async function uploadMedia(file: File): Promise<string> {
+  const ext = file.name.split(".").pop() || "bin";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("whatsapp-media").upload(path, file);
+  if (error) throw error;
+  const { data } = supabase.storage.from("whatsapp-media").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 export async function getConversations() {
@@ -77,4 +59,11 @@ export async function getTotalUnread(): Promise<number> {
     .select("unread_count");
   if (error || !data) return 0;
   return data.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+}
+
+export function getMediaType(file: File): string {
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  return "document";
 }
