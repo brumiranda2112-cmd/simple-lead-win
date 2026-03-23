@@ -36,6 +36,7 @@ function ProtectedRoutes() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/leads" element={<Leads />} />
+        <Route path="/whatsapp" element={<WhatsAppInbox />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/financeiro" element={<Financeiro />} />
         <Route path="/agendamentos" element={<Agendamentos />} />

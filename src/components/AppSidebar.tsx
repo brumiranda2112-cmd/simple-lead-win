@@ -23,6 +23,7 @@ const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Clientes', url: '/pipeline', icon: Kanban },
   { title: 'Leads', url: '/leads', icon: Users },
+  { title: 'WhatsApp', url: '/whatsapp', icon: MessageCircle },
   { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
   { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
   { title: 'Agendamentos', url: '/agendamentos', icon: CalendarDays },
