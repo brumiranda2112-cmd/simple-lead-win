@@ -38,9 +38,27 @@ export default function WhatsAppConnection() {
 
   useEffect(() => { checkStatus(); }, [checkStatus]);
 
+  const ensureInstance = useCallback(async () => {
+    try {
+      const instances = await evolutionApi('instance/fetchInstances');
+      if (Array.isArray(instances) && instances.some((i: any) => i.instance?.instanceName === 'crm-whatsapp')) {
+        return;
+      }
+      await evolutionApi('instance/create', 'POST', {
+        instanceName: 'crm-whatsapp',
+        integration: 'WHATSAPP-BAILEYS',
+        qrcode: true,
+      });
+    } catch (e) {
+      console.warn('ensureInstance error:', e);
+    }
+  }, []);
+
   const fetchQr = useCallback(async () => {
     setFetching(true);
     retryRef.current = 0;
+
+    await ensureInstance();
 
     const attempt = async (): Promise<void> => {
       try {
@@ -63,7 +81,7 @@ export default function WhatsAppConnection() {
     };
 
     await attempt();
-  }, []);
+  }, [ensureInstance]);
 
   useEffect(() => {
     if (!showQr) return;
