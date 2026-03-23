@@ -68,6 +68,12 @@ export default function Agendamentos() {
     toast.success('Status atualizado');
   };
 
+  const deleteBooking = async (id: string) => {
+    await supabase.from('bookings').delete().eq('id', id);
+    loadData();
+    toast.success('Agendamento excluído');
+  };
+
   const handleSaveType = async () => {
     if (editType) {
       await supabase.from('appointment_types').update(typeForm).eq('id', editType.id);
