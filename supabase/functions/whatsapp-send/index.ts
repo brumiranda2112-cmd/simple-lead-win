@@ -29,28 +29,40 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
 
-    const { phone, message, type, mediaUrl, caption } = await req.json();
+    const { phone, message, type, mediaUrl, caption, mimetype, fileName } = await req.json();
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL") || "http://191.252.182.221:8080";
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY")!;
     const INSTANCE = "crm-whatsapp";
 
+    const formattedPhone = phone.replace(/\D/g, "");
+
     let endpoint: string;
     let body: Record<string, unknown>;
 
-    const formattedPhone = phone.replace(/\D/g, "");
-
     if (type === "text") {
+      // Evolution API v1.8.2 text format
       endpoint = `${EVOLUTION_API_URL}/message/sendText/${INSTANCE}`;
       body = {
         number: formattedPhone,
-        text: message,
+        textMessage: { text: message },
+      };
+    } else if (type === "audio") {
+      // Evolution API v1.8.2 audio format
+      endpoint = `${EVOLUTION_API_URL}/message/sendWhatsAppAudio/${INSTANCE}`;
+      body = {
+        number: formattedPhone,
+        audio: mediaUrl,
+        encoding: true,
       };
     } else {
+      // Evolution API v1.8.2 media format (image/video/document)
       endpoint = `${EVOLUTION_API_URL}/message/sendMedia/${INSTANCE}`;
       body = {
         number: formattedPhone,
         mediatype: type,
+        mimetype: mimetype || (type === "image" ? "image/jpeg" : type === "video" ? "video/mp4" : "application/pdf"),
         media: mediaUrl,
+        fileName: fileName || `file.${type === "image" ? "jpg" : type === "video" ? "mp4" : "pdf"}`,
         caption: caption || "",
       };
     }
@@ -67,6 +79,7 @@ Deno.serve(async (req) => {
     const evoData = await evoRes.json();
 
     if (!evoRes.ok) {
+      console.error("Evolution API error:", JSON.stringify(evoData));
       return new Response(JSON.stringify({ error: "Evolution API error", details: evoData }), {
         status: 500,
         headers: corsHeaders,
@@ -86,11 +99,13 @@ Deno.serve(async (req) => {
       .eq("phone", formattedPhone)
       .maybeSingle();
 
+    const msgPreview = type === "text" ? message : (caption || `📎 ${type}`);
+
     let conversationId: string;
     if (conv) {
       conversationId = conv.id;
       await serviceSupabase.from("whatsapp_conversations").update({
-        last_message: type === "text" ? message : (caption || `📎 ${type}`),
+        last_message: msgPreview,
         last_message_at: new Date().toISOString(),
         unread_count: 0,
       }).eq("id", conversationId);
@@ -98,7 +113,7 @@ Deno.serve(async (req) => {
       const { data: newConv } = await serviceSupabase.from("whatsapp_conversations").insert({
         phone: formattedPhone,
         contact_name: formattedPhone,
-        last_message: type === "text" ? message : (caption || `📎 ${type}`),
+        last_message: msgPreview,
         last_message_at: new Date().toISOString(),
         unread_count: 0,
         status: "open",
