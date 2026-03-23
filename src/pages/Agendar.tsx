@@ -143,9 +143,6 @@ export default function Agendar() {
     setSubmitting(false);
     if (!error) {
       setConfirmed(true);
-      // Send WhatsApp confirmation
-      const dateStr = format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-      sendWhatsAppConfirmation(formData.phone, formData.name, selectedType.name, dateStr, selectedTime);
     }
   };
 
