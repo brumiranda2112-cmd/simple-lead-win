@@ -6,6 +6,19 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function normalizePhone(jid: string): { phone: string; isGroup: boolean } {
+  if (!jid) return { phone: '', isGroup: false };
+  const isGroup = jid.includes('@g.us');
+  if (isGroup) {
+    // Keep group ID intact but clean
+    const groupId = jid.split('@')[0];
+    return { phone: groupId + '@g.us', isGroup: true };
+  }
+  // For regular contacts, strip everything except digits
+  const digits = jid.split('@')[0]?.replace(/[^0-9]/g, '') || '';
+  return { phone: digits, isGroup: false };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,7 +39,9 @@ Deno.serve(async (req) => {
 
       const msg = data;
       const key = msg.key;
-      const phone = key.remoteJid?.replace("@s.whatsapp.net", "").replace("@g.us", "") || "";
+      const rawJid = key.remoteJid || '';
+      const { phone, isGroup } = normalizePhone(rawJid);
+
       if (!phone || phone === "status") {
         return new Response(JSON.stringify({ ok: true, skipped: true }), { headers: corsHeaders });
       }
@@ -61,7 +76,7 @@ Deno.serve(async (req) => {
           mediaUrl = msgContent.videoMessage.url || null;
           messageBody = msgContent.videoMessage.caption || "🎥 Vídeo";
         } else if (msgContent.audioMessage) {
-          messageType = "audio";
+          messageType = msgContent.audioMessage.ptt ? "ptt" : "audio";
           mediaType = msgContent.audioMessage.mimetype || "audio/ogg";
           mediaUrl = msgContent.audioMessage.url || null;
           messageBody = "🎵 Áudio";
@@ -78,10 +93,10 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Upsert conversation
+      // Upsert conversation using normalized phone
       const { data: existingConv } = await supabase
         .from("whatsapp_conversations")
-        .select("id, unread_count")
+        .select("id, unread_count, contact_name")
         .eq("phone", phone)
         .maybeSingle();
 
