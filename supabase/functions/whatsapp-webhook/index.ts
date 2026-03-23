@@ -6,17 +6,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function normalizePhone(jid: string): { phone: string; isGroup: boolean } {
-  if (!jid) return { phone: '', isGroup: false };
+function normalizePhone(jid: string): { phone: string; isGroup: boolean; isLid: boolean } {
+  if (!jid) return { phone: '', isGroup: false, isLid: false };
   const isGroup = jid.includes('@g.us');
   if (isGroup) {
-    // Keep group ID intact but clean
     const groupId = jid.split('@')[0];
-    return { phone: groupId + '@g.us', isGroup: true };
+    return { phone: groupId + '@g.us', isGroup: true, isLid: false };
   }
-  // For regular contacts, strip everything except digits
+  // LID (Linked ID) JIDs are internal WhatsApp IDs, not real phone numbers
+  const isLid = jid.includes('@lid');
   const digits = jid.split('@')[0]?.replace(/[^0-9]/g, '') || '';
-  return { phone: digits, isGroup: false };
+  return { phone: digits, isGroup: false, isLid };
 }
 
 Deno.serve(async (req) => {
@@ -40,9 +40,27 @@ Deno.serve(async (req) => {
       const msg = data;
       const key = msg.key;
       const rawJid = key.remoteJid || '';
-      const { phone, isGroup } = normalizePhone(rawJid);
+      let { phone, isGroup, isLid } = normalizePhone(rawJid);
 
-      if (!phone || phone === "status") {
+      // For LID JIDs, try to get real phone from participant field
+      if (isLid && key.participant) {
+        const participantResult = normalizePhone(key.participant);
+        if (participantResult.phone && !participantResult.isLid) {
+          phone = participantResult.phone;
+          isLid = false;
+        }
+      }
+      // Also try msg.participant for LID
+      if (isLid && msg.participant) {
+        const participantResult = normalizePhone(msg.participant);
+        if (participantResult.phone && !participantResult.isLid) {
+          phone = participantResult.phone;
+          isLid = false;
+        }
+      }
+
+      if (!phone || phone === "status" || isLid) {
+        console.log("Skipping message with LID or invalid phone:", rawJid);
         return new Response(JSON.stringify({ ok: true, skipped: true }), { headers: corsHeaders });
       }
 
