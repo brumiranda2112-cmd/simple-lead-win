@@ -13,15 +13,20 @@ export default function WhatsAppConnection() {
   const retryRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
+  const [profileName, setProfileName] = useState('');
+
   const checkStatus = useCallback(async () => {
     try {
       const instances = await evolutionApi('instance/fetchInstances');
+      console.log('fetchInstances response:', JSON.stringify(instances));
       if (Array.isArray(instances) && instances.length > 0) {
         const inst = instances.find((i: any) => i.instance?.instanceName === 'crm-whatsapp') || instances[0];
-        const connStatus = inst?.instance?.connectionStatus || inst?.instance?.state || '';
-        if (connStatus === 'open') {
-          const p = inst?.instance?.ownerJid || inst?.instance?.owner || '';
-          setPhone(p.replace('@s.whatsapp.net', ''));
+        const instStatus = inst?.instance?.status;
+        console.log('Instance status:', instStatus);
+        if (instStatus === 'open') {
+          const owner = inst?.instance?.owner || '';
+          setPhone(owner.replace('@s.whatsapp.net', ''));
+          setProfileName(inst?.instance?.profileName || '');
           setStatus('connected');
           setShowQr(false);
           setQrBase64(null);
@@ -30,7 +35,8 @@ export default function WhatsAppConnection() {
       }
       setStatus('disconnected');
       return false;
-    } catch {
+    } catch (err) {
+      console.error('checkStatus error:', err);
       setStatus('disconnected');
       return false;
     }
