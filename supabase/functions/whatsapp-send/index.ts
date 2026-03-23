@@ -40,11 +40,14 @@ Deno.serve(async (req) => {
         headers: { apikey: EVOLUTION_API_KEY },
       });
       const instances = await res.json();
-      const inst = Array.isArray(instances)
-        ? instances.find((i: any) => i.instance?.instanceName === INSTANCE)
-        : null;
-      const connected = inst?.instance?.state === "open" || inst?.instance?.connectionStatus === "open";
-      const phone = inst?.instance?.owner || "";
+      let connected = false;
+      let phone = "";
+      if (Array.isArray(instances) && instances.length > 0) {
+        const inst = instances.find((i: any) => i.instance?.instanceName === INSTANCE) || instances[0];
+        const connStatus = inst?.instance?.connectionStatus || inst?.instance?.state || "";
+        connected = connStatus === "open";
+        phone = inst?.instance?.ownerJid || inst?.instance?.owner || "";
+      }
       return new Response(JSON.stringify({ connected, phone }), { headers: corsHeaders });
     }
 
@@ -53,8 +56,11 @@ Deno.serve(async (req) => {
         headers: { apikey: EVOLUTION_API_KEY },
       });
       const data = await res.json();
-      const qr = data?.base64 || data?.qrcode?.base64 || data?.qr || null;
-      return new Response(JSON.stringify({ qr }), { headers: corsHeaders });
+      console.log("QR response:", JSON.stringify(data));
+      const qr = data?.base64 || data?.qrcode?.base64 || data?.qr || data?.code || null;
+      const pairingCode = data?.pairingCode || null;
+      const count = data?.count ?? null;
+      return new Response(JSON.stringify({ qr, pairingCode, count }), { headers: corsHeaders });
     }
 
     if (payload.action === "disconnect") {
