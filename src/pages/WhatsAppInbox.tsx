@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, X } from 'lucide-react';
 import { sendMessage, sendMedia, uploadMedia, getConversations, getMessages, markAsRead, getMediaType } from '@/lib/whatsappService';
 import { toast } from 'sonner';
@@ -14,6 +15,7 @@ import MessageBubble from '@/components/whatsapp/MessageBubble';
 import MessageInput from '@/components/whatsapp/MessageInput';
 import TransferModal from '@/components/whatsapp/TransferModal';
 import NewConversationModal from '@/components/whatsapp/NewConversationModal';
+import ScheduleMessageModal from '@/components/whatsapp/ScheduleMessageModal';
 import type { Conversation, Message, Profile } from '@/components/whatsapp/types';
 
 export default function WhatsAppInbox() {
@@ -25,12 +27,15 @@ export default function WhatsAppInbox() {
   const [mobileShowChat, setMobileShowChat] = useState(false);
 
   // Modals
-  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [showKanbanModal, setShowKanbanModal] = useState<'lead' | 'client' | null>(null);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showNewConvModal, setShowNewConvModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [leadName, setLeadName] = useState('');
-  const [leadEmail, setLeadEmail] = useState('');
+  const [kanbanName, setKanbanName] = useState('');
+  const [kanbanEmail, setKanbanEmail] = useState('');
+  const [kanbanValue, setKanbanValue] = useState('');
+  const [kanbanStage, setKanbanStage] = useState('lead_qualificado');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -84,11 +89,9 @@ export default function WhatsAppInbox() {
   const handleSend = async (text: string) => {
     if (!selectedConv) return;
     setSending(true);
-    try {
-      await sendMessage(selectedConv.phone, text);
-    } catch (e: any) {
-      toast.error('Erro ao enviar: ' + e.message);
-    } finally { setSending(false); }
+    try { await sendMessage(selectedConv.phone, text); }
+    catch (e: any) { toast.error('Erro ao enviar: ' + e.message); }
+    finally { setSending(false); }
   };
 
   const handleFileSelect = async (file: File) => {
@@ -99,9 +102,20 @@ export default function WhatsAppInbox() {
       const url = await uploadMedia(file);
       await sendMedia(selectedConv.phone, url, mediaType, '', file.type, file.name);
       toast.success('Mídia enviada!');
-    } catch (err: any) {
-      toast.error('Erro ao enviar mídia: ' + err.message);
-    } finally { setSending(false); }
+    } catch (err: any) { toast.error('Erro ao enviar mídia: ' + err.message); }
+    finally { setSending(false); }
+  };
+
+  const handleAudioRecorded = async (blob: Blob) => {
+    if (!selectedConv) return;
+    setSending(true);
+    try {
+      const file = new File([blob], 'audio.webm', { type: 'audio/webm;codecs=opus' });
+      const url = await uploadMedia(file);
+      await sendMedia(selectedConv.phone, url, 'audio', '', file.type, file.name);
+      toast.success('Áudio enviado!');
+    } catch (err: any) { toast.error('Erro ao enviar áudio: ' + err.message); }
+    finally { setSending(false); }
   };
 
   const handleFinish = async () => {
@@ -136,6 +150,12 @@ export default function WhatsAppInbox() {
     loadConversations();
   };
 
+  const handleLabelsUpdate = (labels: string[]) => {
+    if (!selectedConv) return;
+    setSelectedConv({ ...selectedConv, labels } as any);
+    loadConversations();
+  };
+
   const handleNewConversation = async (phone: string, message: string) => {
     setSending(true);
     try {
@@ -143,34 +163,54 @@ export default function WhatsAppInbox() {
       toast.success('Mensagem enviada!');
       setShowNewConvModal(false);
       loadConversations();
-    } catch (e: any) {
-      toast.error('Erro: ' + e.message);
-    } finally { setSending(false); }
+    } catch (e: any) { toast.error('Erro: ' + e.message); }
+    finally { setSending(false); }
   };
 
-  const handleCreateLead = () => {
-    if (!selectedConv) return;
+  const handleCreateKanban = () => {
+    if (!selectedConv || !showKanbanModal) return;
     const leads = JSON.parse(localStorage.getItem('crm_leads') || '[]');
-    const newLead = {
+    const newItem = {
       id: crypto.randomUUID(),
-      name: leadName || selectedConv.contact_name || selectedConv.phone,
-      email: leadEmail,
+      name: kanbanName || selectedConv.contact_name || selectedConv.phone,
+      email: kanbanEmail,
       phone: selectedConv.phone,
-      status: 'lead_qualificado',
-      value: 0,
-      notes: 'Lead criado via WhatsApp Inbox',
+      status: kanbanStage,
+      value: parseFloat(kanbanValue) || 0,
+      notes: `Criado via WhatsApp Inbox como ${showKanbanModal}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      leadType: 'lead',
+      leadType: showKanbanModal === 'lead' ? 'lead' : 'client',
     };
-    leads.push(newLead);
+    leads.push(newItem);
     localStorage.setItem('crm_leads', JSON.stringify(leads));
-    supabase.from('whatsapp_conversations').update({ lead_id: newLead.id }).eq('id', selectedConv.id);
-    toast.success('Lead criado com sucesso!');
-    setShowLeadModal(false);
-    setLeadName('');
-    setLeadEmail('');
+    supabase.from('whatsapp_conversations').update({ lead_id: newItem.id }).eq('id', selectedConv.id);
+    toast.success(`${showKanbanModal === 'lead' ? 'Lead' : 'Cliente'} criado com sucesso!`);
+    setShowKanbanModal(null);
+    setKanbanName('');
+    setKanbanEmail('');
+    setKanbanValue('');
   };
+
+  const leadStages = [
+    { value: 'lead_qualificado', label: 'Lead Qualificado' },
+    { value: 'call_diagnostico', label: 'Call de Diagnóstico' },
+    { value: 'proposta_implementacao', label: 'Proposta de Implementação' },
+    { value: 'call_fechamento', label: 'Call de Fechamento' },
+    { value: 'proposta_honorarios', label: 'Proposta de Honorários' },
+    { value: 'fechado', label: 'Fechado' },
+  ];
+  const clientStages = [
+    { value: 'cliente_novo', label: 'Cliente Novo' },
+    { value: 'mvp', label: 'MVP' },
+    { value: 'call_apresentacao', label: 'Call de Apresentação' },
+    { value: 'aprovacao', label: 'Aprovação' },
+    { value: 'desenvolvimento_final', label: 'Desenvolvimento Final' },
+    { value: 'entrega_cliente', label: 'Entrega ao Cliente' },
+    { value: 'ajustes', label: 'Ajustes' },
+    { value: 'finalizado', label: 'Finalizado' },
+  ];
+  const stages = showKanbanModal === 'client' ? clientStages : leadStages;
 
   const chatView = selectedConv ? (
     <div className="flex flex-col h-full">
@@ -178,11 +218,14 @@ export default function WhatsAppInbox() {
         conversation={selectedConv}
         profiles={profiles}
         onBack={() => setMobileShowChat(false)}
-        onCreateLead={() => { setLeadName(selectedConv.contact_name || ''); setShowLeadModal(true); }}
+        onCreateLead={() => { setKanbanName(selectedConv.contact_name || ''); setKanbanStage('lead_qualificado'); setShowKanbanModal('lead'); }}
+        onCreateClient={() => { setKanbanName(selectedConv.contact_name || ''); setKanbanStage('cliente_novo'); setShowKanbanModal('client'); }}
         onFinish={handleFinish}
         onTransfer={() => setShowTransferModal(true)}
         onPriorityChange={handlePriorityChange}
         onMarkUnread={handleMarkUnread}
+        onSchedule={() => setShowScheduleModal(true)}
+        onLabelsUpdate={handleLabelsUpdate}
       />
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-2 max-w-2xl mx-auto">
@@ -192,7 +235,7 @@ export default function WhatsAppInbox() {
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
-      <MessageInput onSend={handleSend} onFileSelect={handleFileSelect} sending={sending} />
+      <MessageInput onSend={handleSend} onFileSelect={handleFileSelect} onAudioRecorded={handleAudioRecorded} sending={sending} />
     </div>
   ) : (
     <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -232,18 +275,30 @@ export default function WhatsAppInbox() {
         </Dialog>
       )}
 
-      {/* Create Lead Modal */}
-      <Dialog open={showLeadModal} onOpenChange={setShowLeadModal}>
+      {/* Kanban Modal (Lead/Client) */}
+      <Dialog open={!!showKanbanModal} onOpenChange={(o) => !o && setShowKanbanModal(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Criar Lead a partir do contato</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Criar {showKanbanModal === 'lead' ? 'Lead' : 'Cliente'} a partir do contato</DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
-            <div><Label>Nome</Label><Input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Nome do lead" /></div>
-            <div><Label>Email</Label><Input value={leadEmail} onChange={e => setLeadEmail(e.target.value)} placeholder="email@exemplo.com" type="email" /></div>
+            <div><Label>Nome</Label><Input value={kanbanName} onChange={e => setKanbanName(e.target.value)} placeholder="Nome" /></div>
+            <div><Label>Email</Label><Input value={kanbanEmail} onChange={e => setKanbanEmail(e.target.value)} placeholder="email@exemplo.com" type="email" /></div>
             <div><Label>WhatsApp</Label><Input value={selectedConv?.phone || ''} disabled /></div>
+            <div><Label>Valor Estimado</Label><Input type="number" value={kanbanValue} onChange={e => setKanbanValue(e.target.value)} placeholder="0.00" /></div>
+            <div>
+              <Label>Estágio</Label>
+              <Select value={kanbanStage} onValueChange={setKanbanStage}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {stages.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowLeadModal(false)}>Cancelar</Button>
-            <Button onClick={handleCreateLead}>Criar Lead</Button>
+            <Button variant="outline" onClick={() => setShowKanbanModal(null)}>Cancelar</Button>
+            <Button onClick={handleCreateKanban}>Criar {showKanbanModal === 'lead' ? 'Lead' : 'Cliente'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -253,6 +308,16 @@ export default function WhatsAppInbox() {
 
       {/* New Conversation Modal */}
       <NewConversationModal open={showNewConvModal} onClose={() => setShowNewConvModal(false)} onSend={handleNewConversation} sending={sending} />
+
+      {/* Schedule Message Modal */}
+      {selectedConv && (
+        <ScheduleMessageModal
+          open={showScheduleModal}
+          onClose={() => setShowScheduleModal(false)}
+          phone={selectedConv.phone}
+          conversationId={selectedConv.id}
+        />
+      )}
     </div>
   );
 }
