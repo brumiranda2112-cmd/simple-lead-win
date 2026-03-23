@@ -128,14 +128,13 @@ export const LEAD_PIPELINE_STATUS_LABELS: Record<LeadPipelineStatus, string> = {
 // Labels for client pipeline
 export const CLIENT_PIPELINE_STATUS_LABELS: Record<ClientPipelineStatus, string> = {
   cliente_novo: 'Cliente Novo',
-  diagnostico: 'Diagnóstico',
-  call_cliente: 'Call com Cliente',
-  mvp_sistema: 'MVP do Sistema',
-  aprovacao_cliente: 'Aprovação do Cliente',
-  contrato_fechado: 'Contrato Fechado',
-  desenvolvimento: 'Desenvolvimento Completo',
-  periodo_ajustes: 'Período de Ajustes',
-  finalizado: 'Cliente Finalizado',
+  mvp: 'MVP',
+  call_apresentacao: 'Call de Apresentação',
+  aprovacao: 'Aprovação',
+  desenvolvimento_final: 'Desenvolvimento Final',
+  entrega_cliente: 'Entrega ao Cliente',
+  ajustes: 'Ajustes',
+  finalizado: 'Finalizado',
 };
 
 // Combined labels
