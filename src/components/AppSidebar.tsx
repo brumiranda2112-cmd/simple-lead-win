@@ -35,7 +35,14 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const { profile, isAdmin, logout } = useAuth();
   const pendingCount = getOverdueTasks().length + getTodayTasks().length;
+  const [whatsappUnread, setWhatsappUnread] = useState(0);
   const visibleItems = navItems.filter(item => !('adminOnly' in item) || isAdmin);
+
+  useEffect(() => {
+    getTotalUnread().then(setWhatsappUnread);
+    const interval = setInterval(() => getTotalUnread().then(setWhatsappUnread), 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Sidebar collapsible="icon">
