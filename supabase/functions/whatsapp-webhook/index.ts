@@ -40,9 +40,27 @@ Deno.serve(async (req) => {
       const msg = data;
       const key = msg.key;
       const rawJid = key.remoteJid || '';
-      const { phone, isGroup } = normalizePhone(rawJid);
+      let { phone, isGroup, isLid } = normalizePhone(rawJid);
 
-      if (!phone || phone === "status") {
+      // For LID JIDs, try to get real phone from participant field
+      if (isLid && key.participant) {
+        const participantResult = normalizePhone(key.participant);
+        if (participantResult.phone && !participantResult.isLid) {
+          phone = participantResult.phone;
+          isLid = false;
+        }
+      }
+      // Also try msg.participant for LID
+      if (isLid && msg.participant) {
+        const participantResult = normalizePhone(msg.participant);
+        if (participantResult.phone && !participantResult.isLid) {
+          phone = participantResult.phone;
+          isLid = false;
+        }
+      }
+
+      if (!phone || phone === "status" || isLid) {
+        console.log("Skipping message with LID or invalid phone:", rawJid);
         return new Response(JSON.stringify({ ok: true, skipped: true }), { headers: corsHeaders });
       }
 
