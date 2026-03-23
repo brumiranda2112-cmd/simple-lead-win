@@ -301,7 +301,7 @@ export function CeoBot() {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          'fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center',
+          'fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full flex items-center justify-center',
           'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/25',
           'hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105',
           'active:scale-95 transition-all duration-200',
