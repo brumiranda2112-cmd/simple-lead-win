@@ -37,14 +37,19 @@ export default function MessageBubble({ message: msg, onImageClick }: Props) {
     }
     if ((type === 'audio' || type === 'ptt') && msg.media_url) {
       return (
-        <div className="min-w-[260px]">
+        <div style={{ minWidth: '240px', padding: '4px 0' }}>
           <audio
             controls
             src={msg.media_url}
-            className="w-[260px] h-10"
-            style={{ filter: msg.from_me ? 'brightness(0) invert(1)' : undefined }}
+            style={{
+              width: '240px',
+              minWidth: '240px',
+              height: '36px',
+              display: 'block',
+              outline: 'none',
+            }}
           />
-          <div className="flex items-center gap-1.5 mt-1">
+          <div className="flex items-center gap-1.5 mt-1.5">
             <Mic className="h-3.5 w-3.5 text-muted-foreground" />
             <span className={`text-[11px] ${msg.from_me ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
               Mensagem de voz
