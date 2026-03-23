@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
       body = { number: formattedPhone, textMessage: { text: message } };
     } else if (type === "audio") {
       endpoint = `${EVOLUTION_API_URL}/message/sendWhatsAppAudio/${INSTANCE}`;
-      body = { number: formattedPhone, audio: mediaUrl, encoding: true };
+      body = { number: formattedPhone, audioMessage: { audio: mediaUrl }, encoding: true };
     } else {
       endpoint = `${EVOLUTION_API_URL}/message/sendMedia/${INSTANCE}`;
       body = {
