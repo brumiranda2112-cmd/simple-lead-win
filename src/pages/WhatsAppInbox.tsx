@@ -1,78 +1,64 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Send, Search, User, Paperclip, UserPlus, ArrowLeft, FileText, Check, CheckCheck, X } from 'lucide-react';
-import { format, isToday, isYesterday } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { Label } from '@/components/ui/label';
+import { User, X } from 'lucide-react';
 import { sendMessage, sendMedia, uploadMedia, getConversations, getMessages, markAsRead, getMediaType } from '@/lib/whatsappService';
 import { toast } from 'sonner';
-import type { Tables } from '@/integrations/supabase/types';
-
-type Conversation = Tables<'whatsapp_conversations'>;
-type Message = Tables<'whatsapp_messages'>;
-
-function formatTime(dateStr: string | null) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (isToday(d)) return format(d, 'HH:mm');
-  if (isYesterday(d)) return 'Ontem';
-  return format(d, 'dd/MM', { locale: ptBR });
-}
-
-function StatusIcon({ status }: { status: string | null }) {
-  if (status === 'delivered' || status === 'read') return <CheckCheck className="h-3 w-3 inline-block ml-1" />;
-  if (status === 'sent') return <Check className="h-3 w-3 inline-block ml-1" />;
-  return null;
-}
+import ConversationList from '@/components/whatsapp/ConversationList';
+import ChatHeader from '@/components/whatsapp/ChatHeader';
+import MessageBubble from '@/components/whatsapp/MessageBubble';
+import MessageInput from '@/components/whatsapp/MessageInput';
+import TransferModal from '@/components/whatsapp/TransferModal';
+import NewConversationModal from '@/components/whatsapp/NewConversationModal';
+import type { Conversation, Message, Profile } from '@/components/whatsapp/types';
 
 export default function WhatsAppInbox() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMsg, setNewMsg] = useState('');
-  const [search, setSearch] = useState('');
   const [sending, setSending] = useState(false);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [mobileShowChat, setMobileShowChat] = useState(false);
+
+  // Modals
   const [showLeadModal, setShowLeadModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showNewConvModal, setShowNewConvModal] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [leadName, setLeadName] = useState('');
   const [leadEmail, setLeadEmail] = useState('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [mobileShowChat, setMobileShowChat] = useState(false);
 
   const loadConversations = useCallback(async () => {
     try {
       const data = await getConversations();
-      setConversations(data || []);
-    } catch (e) {
-      console.error(e);
-    }
+      setConversations((data as Conversation[]) || []);
+    } catch (e) { console.error(e); }
   }, []);
 
   const loadMessages = useCallback(async (convId: string) => {
     try {
       const data = await getMessages(convId);
       setMessages(data || []);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   }, []);
 
-  useEffect(() => { loadConversations(); }, [loadConversations]);
+  const loadProfiles = useCallback(async () => {
+    const { data } = await supabase.from('profiles').select('id, name, email, avatar_url').eq('is_active', true);
+    if (data) setProfiles(data);
+  }, []);
+
+  useEffect(() => { loadConversations(); loadProfiles(); }, [loadConversations, loadProfiles]);
 
   useEffect(() => {
     const channel = supabase
       .channel('whatsapp-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_conversations' }, () => {
-        loadConversations();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'whatsapp_conversations' }, () => loadConversations())
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'whatsapp_messages' }, (payload) => {
         const newMessage = payload.new as Message;
         if (selectedConv && newMessage.conversation_id === selectedConv.id) {
@@ -83,9 +69,7 @@ export default function WhatsAppInbox() {
     return () => { supabase.removeChannel(channel); };
   }, [loadConversations, selectedConv]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const selectConversation = async (conv: Conversation) => {
     setSelectedConv(conv);
@@ -97,29 +81,18 @@ export default function WhatsAppInbox() {
     }
   };
 
-  const handleSend = async () => {
-    if (!newMsg.trim() || !selectedConv) return;
+  const handleSend = async (text: string) => {
+    if (!selectedConv) return;
     setSending(true);
     try {
-      await sendMessage(selectedConv.phone, newMsg.trim());
-      setNewMsg('');
+      await sendMessage(selectedConv.phone, text);
     } catch (e: any) {
       toast.error('Erro ao enviar: ' + e.message);
-    } finally {
-      setSending(false);
-    }
+    } finally { setSending(false); }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedConv) return;
+  const handleFileSelect = async (file: File) => {
+    if (!selectedConv) return;
     setSending(true);
     try {
       const mediaType = getMediaType(file);
@@ -128,10 +101,51 @@ export default function WhatsAppInbox() {
       toast.success('Mídia enviada!');
     } catch (err: any) {
       toast.error('Erro ao enviar mídia: ' + err.message);
-    } finally {
-      setSending(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    } finally { setSending(false); }
+  };
+
+  const handleFinish = async () => {
+    if (!selectedConv) return;
+    await supabase.from('whatsapp_conversations').update({ status: 'finished' } as any).eq('id', selectedConv.id);
+    toast.success('Conversa finalizada');
+    setSelectedConv(null);
+    setMobileShowChat(false);
+    loadConversations();
+  };
+
+  const handlePriorityChange = async (priority: string) => {
+    if (!selectedConv) return;
+    await supabase.from('whatsapp_conversations').update({ priority } as any).eq('id', selectedConv.id);
+    setSelectedConv({ ...selectedConv, priority } as any);
+    loadConversations();
+  };
+
+  const handleTransfer = async (userId: string) => {
+    if (!selectedConv) return;
+    await supabase.from('whatsapp_conversations').update({ assigned_to: userId } as any).eq('id', selectedConv.id);
+    const profile = profiles.find(p => p.id === userId);
+    toast.success(`Conversa transferida para ${profile?.name || 'usuário'}`);
+    setSelectedConv({ ...selectedConv, assigned_to: userId } as any);
+    loadConversations();
+  };
+
+  const handleMarkUnread = async () => {
+    if (!selectedConv) return;
+    await supabase.from('whatsapp_conversations').update({ unread_count: 1 }).eq('id', selectedConv.id);
+    toast.success('Marcada como não lida');
+    loadConversations();
+  };
+
+  const handleNewConversation = async (phone: string, message: string) => {
+    setSending(true);
+    try {
+      await sendMessage(phone, message);
+      toast.success('Mensagem enviada!');
+      setShowNewConvModal(false);
+      loadConversations();
+    } catch (e: any) {
+      toast.error('Erro: ' + e.message);
+    } finally { setSending(false); }
   };
 
   const handleCreateLead = () => {
@@ -158,184 +172,27 @@ export default function WhatsAppInbox() {
     setLeadEmail('');
   };
 
-  const filtered = conversations.filter(c => {
-    const q = search.toLowerCase();
-    return !q || (c.contact_name?.toLowerCase().includes(q)) || c.phone.includes(q);
-  });
-
-  const renderMessageContent = (msg: Message) => {
-    const type = msg.type || 'text';
-    if (type === 'image' && msg.media_url) {
-      return (
-        <div>
-          <img
-            src={msg.media_url}
-            alt="imagem"
-            className="max-w-[240px] rounded-lg mb-1 cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => setImagePreview(msg.media_url)}
-          />
-          {msg.body && msg.body !== '📷 Imagem' && <p className="text-sm">{msg.body}</p>}
-        </div>
-      );
-    }
-    if (type === 'video' && msg.media_url) {
-      return (
-        <div>
-          <video src={msg.media_url} controls className="max-w-[240px] rounded-lg mb-1" />
-          {msg.body && msg.body !== '🎥 Vídeo' && <p className="text-sm">{msg.body}</p>}
-        </div>
-      );
-    }
-    if (type === 'audio' && msg.media_url) {
-      return <audio src={msg.media_url} controls className="max-w-[240px]" />;
-    }
-    if (type === 'document' && msg.media_url) {
-      return (
-        <a href={msg.media_url} target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-2 text-sm underline">
-          <FileText className="h-4 w-4" />
-          {msg.body || 'Documento'}
-        </a>
-      );
-    }
-    return <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>;
-  };
-
-  const convList = (
-    <div className="flex flex-col h-full border-r border-border/50">
-      <div className="p-3 border-b border-border/50">
-        <h2 className="text-lg font-bold mb-2 text-foreground">WhatsApp</h2>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar conversa..." value={search} onChange={e => setSearch(e.target.value)}
-            className="pl-9 bg-muted/30 border-border/50" />
-        </div>
-      </div>
-      <ScrollArea className="flex-1">
-        {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground text-sm py-8">Nenhuma conversa</p>
-        )}
-        {filtered.map(conv => (
-          <button key={conv.id} onClick={() => selectConversation(conv)}
-            className={`w-full flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors text-left
-              ${selectedConv?.id === conv.id ? 'bg-muted/50' : ''}`}>
-            <Avatar className="h-10 w-10 shrink-0">
-              {conv.contact_photo && <AvatarImage src={conv.contact_photo} />}
-              <AvatarFallback className="bg-primary/20 text-primary text-sm">
-                {(conv.contact_name || conv.phone).slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-sm text-foreground truncate">
-                  {conv.contact_name || conv.phone}
-                </span>
-                <span className="text-[10px] text-muted-foreground shrink-0 ml-1">
-                  {formatTime(conv.last_message_at)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground truncate">{conv.last_message || ''}</span>
-                {(conv.unread_count || 0) > 0 && (
-                  <Badge className="ml-1 h-5 min-w-5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground shrink-0">
-                    {conv.unread_count}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </button>
-        ))}
-      </ScrollArea>
-    </div>
-  );
-
   const chatView = selectedConv ? (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center gap-3 p-3 border-b border-border/50 bg-card/50">
-        <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setMobileShowChat(false)}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <Avatar className="h-9 w-9">
-          {selectedConv.contact_photo && <AvatarImage src={selectedConv.contact_photo} />}
-          <AvatarFallback className="bg-primary/20 text-primary text-xs">
-            {(selectedConv.contact_name || selectedConv.phone).slice(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm text-foreground truncate">{selectedConv.contact_name || selectedConv.phone}</p>
-          <p className="text-xs text-muted-foreground">{selectedConv.phone}</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => {
-          setLeadName(selectedConv.contact_name || '');
-          setShowLeadModal(true);
-        }}>
-          <UserPlus className="h-4 w-4 mr-1" /> Criar Lead
-        </Button>
-      </div>
-
-      {/* Messages */}
+      <ChatHeader
+        conversation={selectedConv}
+        profiles={profiles}
+        onBack={() => setMobileShowChat(false)}
+        onCreateLead={() => { setLeadName(selectedConv.contact_name || ''); setShowLeadModal(true); }}
+        onFinish={handleFinish}
+        onTransfer={() => setShowTransferModal(true)}
+        onPriorityChange={handlePriorityChange}
+        onMarkUnread={handleMarkUnread}
+      />
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-2 max-w-2xl mx-auto">
           {messages.map(msg => (
-            <div key={msg.id} className={`flex ${msg.from_me ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[75%] rounded-2xl px-3 py-2 ${
-                msg.from_me
-                  ? 'bg-primary text-primary-foreground rounded-br-md'
-                  : 'bg-muted text-foreground rounded-bl-md'
-              }`}>
-                {renderMessageContent(msg)}
-                <p className={`text-[10px] mt-1 text-right ${msg.from_me ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                  {msg.timestamp ? format(new Date(msg.timestamp), 'HH:mm') : ''}
-                  {msg.from_me && <StatusIcon status={msg.status} />}
-                </p>
-              </div>
-            </div>
+            <MessageBubble key={msg.id} message={msg} onImageClick={setImagePreview} />
           ))}
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
-
-      {/* Input */}
-      <div className="p-3 border-t border-border/50 bg-card/50">
-        <div className="flex items-end gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/jpeg,image/png,image/gif,video/mp4,audio/mpeg,audio/ogg,application/pdf"
-            onChange={handleFileSelect}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="shrink-0 mb-0.5"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={sending}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
-          <Textarea
-            value={newMsg}
-            onChange={e => setNewMsg(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Digite uma mensagem..."
-            className="flex-1 bg-muted/30 border-border/50 min-h-[40px] max-h-[120px] resize-none"
-            disabled={sending}
-            rows={1}
-          />
-          <Button
-            type="button"
-            size="icon"
-            disabled={sending || !newMsg.trim()}
-            className="shrink-0 mb-0.5"
-            onClick={handleSend}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <MessageInput onSend={handleSend} onFileSelect={handleFileSelect} sending={sending} />
     </div>
   ) : (
     <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -350,14 +207,20 @@ export default function WhatsAppInbox() {
     <div className="h-[calc(100vh-3rem)] flex flex-col">
       <div className="flex-1 flex overflow-hidden rounded-lg border border-border/50 bg-card/30">
         <div className={`w-full md:w-80 lg:w-96 shrink-0 ${mobileShowChat ? 'hidden md:flex md:flex-col' : 'flex flex-col'}`}>
-          {convList}
+          <ConversationList
+            conversations={conversations}
+            selectedConv={selectedConv}
+            profiles={profiles}
+            onSelect={selectConversation}
+            onNewConversation={() => setShowNewConvModal(true)}
+          />
         </div>
         <div className={`flex-1 ${!mobileShowChat ? 'hidden md:flex md:flex-col' : 'flex flex-col'}`}>
           {chatView}
         </div>
       </div>
 
-      {/* Image Preview Modal */}
+      {/* Image Preview */}
       {imagePreview && (
         <Dialog open={!!imagePreview} onOpenChange={() => setImagePreview(null)}>
           <DialogContent className="max-w-3xl p-1">
@@ -372,22 +235,11 @@ export default function WhatsAppInbox() {
       {/* Create Lead Modal */}
       <Dialog open={showLeadModal} onOpenChange={setShowLeadModal}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Criar Lead a partir do contato</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Criar Lead a partir do contato</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div>
-              <Label>Nome</Label>
-              <Input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Nome do lead" />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input value={leadEmail} onChange={e => setLeadEmail(e.target.value)} placeholder="email@exemplo.com" type="email" />
-            </div>
-            <div>
-              <Label>WhatsApp</Label>
-              <Input value={selectedConv?.phone || ''} disabled />
-            </div>
+            <div><Label>Nome</Label><Input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Nome do lead" /></div>
+            <div><Label>Email</Label><Input value={leadEmail} onChange={e => setLeadEmail(e.target.value)} placeholder="email@exemplo.com" type="email" /></div>
+            <div><Label>WhatsApp</Label><Input value={selectedConv?.phone || ''} disabled /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLeadModal(false)}>Cancelar</Button>
@@ -395,6 +247,12 @@ export default function WhatsAppInbox() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Transfer Modal */}
+      <TransferModal open={showTransferModal} onClose={() => setShowTransferModal(false)} profiles={profiles} onTransfer={handleTransfer} />
+
+      {/* New Conversation Modal */}
+      <NewConversationModal open={showNewConvModal} onClose={() => setShowNewConvModal(false)} onSend={handleNewConversation} sending={sending} />
     </div>
   );
 }
