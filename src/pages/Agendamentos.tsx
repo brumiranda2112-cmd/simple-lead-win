@@ -214,6 +214,9 @@ export default function Agendamentos() {
                             <Button size="sm" variant="ghost" className="text-destructive text-xs" onClick={() => updateBookingStatus(b.id, 'cancelled')}>Cancelar</Button>
                           </>
                         )}
+                        <Button size="sm" variant="ghost" className="text-destructive text-xs" onClick={() => deleteBooking(b.id)}>
+                          <Trash2 className="w-3 h-3 mr-1" />Excluir
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
