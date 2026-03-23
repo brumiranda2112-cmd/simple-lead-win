@@ -68,6 +68,12 @@ export default function Agendamentos() {
     toast.success('Status atualizado');
   };
 
+  const deleteBooking = async (id: string) => {
+    await supabase.from('bookings').delete().eq('id', id);
+    loadData();
+    toast.success('Agendamento excluído');
+  };
+
   const handleSaveType = async () => {
     if (editType) {
       await supabase.from('appointment_types').update(typeForm).eq('id', editType.id);
@@ -208,6 +214,9 @@ export default function Agendamentos() {
                             <Button size="sm" variant="ghost" className="text-destructive text-xs" onClick={() => updateBookingStatus(b.id, 'cancelled')}>Cancelar</Button>
                           </>
                         )}
+                        <Button size="sm" variant="ghost" className="text-destructive text-xs" onClick={() => deleteBooking(b.id)}>
+                          <Trash2 className="w-3 h-3 mr-1" />Excluir
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
