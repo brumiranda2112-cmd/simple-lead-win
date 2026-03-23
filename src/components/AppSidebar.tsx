@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Pipeline', url: '/pipeline', icon: Kanban },
+  { title: 'Clientes', url: '/pipeline', icon: Kanban },
   { title: 'Leads', url: '/leads', icon: Users },
   { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
   { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
