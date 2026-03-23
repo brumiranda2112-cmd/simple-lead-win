@@ -39,7 +39,7 @@ export default function ConversationList({ conversations, selectedConv, profiles
   const [sortBy, setSortBy] = useState<'date' | 'priority'>('date');
   const [filterAssigned, setFilterAssigned] = useState<string>('all');
 
-  const isGroup = (c: Conversation) => c.phone.endsWith('@g.us');
+  const isGroup = (c: Conversation) => c.phone.includes('@g.us') || /[a-zA-Z]/.test(c.phone.replace('@g.us', '').replace('@s.whatsapp.net', '').replace('@c.us', ''));
   const isFinished = (c: Conversation) => (c as any).status === 'finished';
 
   const tabConversations = conversations.filter(c => {
