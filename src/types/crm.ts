@@ -1,8 +1,19 @@
 export type LeadArea = 'agentes_ia' | 'automacoes' | 'sistemas' | 'consultoria' | 'outro';
 export type LeadSource = 'indicacao' | 'google' | 'instagram' | 'site' | 'linkedin' | 'outro';
-export type LeadStatus = 'cliente_novo' | 'diagnostico' | 'call_cliente' | 'mvp_sistema' | 'aprovacao_cliente' | 'contrato_fechado' | 'desenvolvimento' | 'periodo_ajustes' | 'finalizado';
 export type LeadResponsible = 'bruno' | 'gustavo' | 'ana_luiza';
 export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'lembrete' | 'mensagem';
+
+// Lead pipeline statuses (prospecting)
+export type LeadPipelineStatus = 'lead_qualificado' | 'call_diagnostico' | 'proposta_implementacao' | 'call_fechamento' | 'proposta_honorarios' | 'fechado' | 'followup_d1' | 'followup_d2' | 'followup_d3' | 'followup_d4' | 'followup_d5' | 'followup_d6' | 'followup_d7' | 'followup_d8' | 'followup_d9' | 'followup_d10';
+
+// Client pipeline statuses (delivery)
+export type ClientPipelineStatus = 'cliente_novo' | 'diagnostico' | 'call_cliente' | 'mvp_sistema' | 'aprovacao_cliente' | 'contrato_fechado' | 'desenvolvimento' | 'periodo_ajustes' | 'finalizado';
+
+// Combined status
+export type LeadStatus = LeadPipelineStatus | ClientPipelineStatus;
+
+// Entity type
+export type LeadType = 'lead' | 'cliente';
 
 export interface Lead {
   id: string;
@@ -14,6 +25,7 @@ export interface Lead {
   source: LeadSource;
   responsible: LeadResponsible;
   estimatedValue: number;
+  leadType: LeadType;
   status: LeadStatus;
   notes: string;
   nextFollowup: string | null;
@@ -55,7 +67,7 @@ export interface Transaction {
   description: string;
   value: number;
   date: string;
-  leadId?: string;  // linked to a lead (auto or manual)
+  leadId?: string;
   responsible?: LeadResponsible;
   recurring: boolean;
   notes: string;
@@ -93,7 +105,28 @@ export interface CrmUser {
   passwordHash: string;
 }
 
-export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
+// Labels for lead pipeline
+export const LEAD_PIPELINE_STATUS_LABELS: Record<LeadPipelineStatus, string> = {
+  lead_qualificado: 'Lead Qualificado',
+  call_diagnostico: 'Call de Diagnóstico',
+  proposta_implementacao: 'Proposta de Implementação',
+  call_fechamento: 'Call de Fechamento',
+  proposta_honorarios: 'Proposta de Honorários',
+  fechado: 'Fechado',
+  followup_d1: 'Follow Up D+1',
+  followup_d2: 'Follow Up D+2',
+  followup_d3: 'Follow Up D+3',
+  followup_d4: 'Follow Up D+4',
+  followup_d5: 'Follow Up D+5',
+  followup_d6: 'Follow Up D+6',
+  followup_d7: 'Follow Up D+7',
+  followup_d8: 'Follow Up D+8',
+  followup_d9: 'Follow Up D+9',
+  followup_d10: 'Follow Up D+10',
+};
+
+// Labels for client pipeline
+export const CLIENT_PIPELINE_STATUS_LABELS: Record<ClientPipelineStatus, string> = {
   cliente_novo: 'Cliente Novo',
   diagnostico: 'Diagnóstico',
   call_cliente: 'Call com Cliente',
@@ -103,6 +136,12 @@ export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
   desenvolvimento: 'Desenvolvimento Completo',
   periodo_ajustes: 'Período de Ajustes',
   finalizado: 'Cliente Finalizado',
+};
+
+// Combined labels
+export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
+  ...LEAD_PIPELINE_STATUS_LABELS,
+  ...CLIENT_PIPELINE_STATUS_LABELS,
 };
 
 export const LEAD_AREA_LABELS: Record<LeadArea, string> = {
@@ -137,7 +176,28 @@ export const TASK_TYPE_LABELS: Record<TaskType, string> = {
   mensagem: 'Mensagem',
 };
 
-export const PIPELINE_COLUMNS: { status: LeadStatus; label: string; color: string }[] = [
+// Lead pipeline columns
+export const LEAD_PIPELINE_COLUMNS: { status: LeadPipelineStatus; label: string; color: string }[] = [
+  { status: 'lead_qualificado', label: 'Lead Qualificado', color: 'hsl(25, 95%, 53%)' },
+  { status: 'call_diagnostico', label: 'Call de Diagnóstico', color: 'hsl(45, 93%, 47%)' },
+  { status: 'proposta_implementacao', label: 'Proposta de Implementação', color: 'hsl(200, 80%, 50%)' },
+  { status: 'call_fechamento', label: 'Call de Fechamento', color: 'hsl(262, 83%, 58%)' },
+  { status: 'proposta_honorarios', label: 'Proposta de Honorários', color: 'hsl(170, 70%, 45%)' },
+  { status: 'fechado', label: 'Fechado', color: 'hsl(142, 71%, 45%)' },
+  { status: 'followup_d1', label: 'Follow Up D+1', color: 'hsl(210, 70%, 55%)' },
+  { status: 'followup_d2', label: 'Follow Up D+2', color: 'hsl(215, 70%, 55%)' },
+  { status: 'followup_d3', label: 'Follow Up D+3', color: 'hsl(220, 70%, 55%)' },
+  { status: 'followup_d4', label: 'Follow Up D+4', color: 'hsl(225, 70%, 55%)' },
+  { status: 'followup_d5', label: 'Follow Up D+5', color: 'hsl(230, 70%, 55%)' },
+  { status: 'followup_d6', label: 'Follow Up D+6', color: 'hsl(235, 70%, 55%)' },
+  { status: 'followup_d7', label: 'Follow Up D+7', color: 'hsl(240, 70%, 55%)' },
+  { status: 'followup_d8', label: 'Follow Up D+8', color: 'hsl(245, 70%, 55%)' },
+  { status: 'followup_d9', label: 'Follow Up D+9', color: 'hsl(250, 70%, 55%)' },
+  { status: 'followup_d10', label: 'Follow Up D+10', color: 'hsl(255, 70%, 55%)' },
+];
+
+// Client pipeline columns (existing)
+export const PIPELINE_COLUMNS: { status: ClientPipelineStatus; label: string; color: string }[] = [
   { status: 'cliente_novo', label: 'Cliente Novo', color: 'hsl(25, 95%, 53%)' },
   { status: 'diagnostico', label: 'Diagnóstico', color: 'hsl(45, 93%, 47%)' },
   { status: 'call_cliente', label: 'Call com Cliente', color: 'hsl(200, 80%, 50%)' },

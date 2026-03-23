@@ -1,4 +1,4 @@
-import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction } from '@/types/crm';
+import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction, LeadType } from '@/types/crm';
 
 const KEYS = {
   USER: 'crm_user',
@@ -61,8 +61,23 @@ export function logout() {
 }
 
 // ===== LEADS =====
+function migrateLeads(leads: Lead[]): Lead[] {
+  return leads.map(l => {
+    if (!l.leadType) {
+      // Existing leads without leadType: check status to determine type
+      const clientStatuses = ['cliente_novo', 'diagnostico', 'call_cliente', 'mvp_sistema', 'aprovacao_cliente', 'contrato_fechado', 'desenvolvimento', 'periodo_ajustes', 'finalizado'];
+      return { ...l, leadType: clientStatuses.includes(l.status) ? 'cliente' as LeadType : 'lead' as LeadType };
+    }
+    return l;
+  });
+}
+
 export function getLeads(): Lead[] {
-  return get<Lead[]>(KEYS.LEADS, []);
+  return migrateLeads(get<Lead[]>(KEYS.LEADS, []));
+}
+
+export function getLeadsByType(type: LeadType): Lead[] {
+  return getLeads().filter(l => l.leadType === type);
 }
 
 export function getLead(id: string): Lead | undefined {
@@ -109,6 +124,17 @@ export function moveLeadStatus(id: string, newStatus: LeadStatus, reason?: strin
   };
   set(KEYS.LEADS, leads);
   addActivity(id, 'status_changed', `Status mudou de "${oldStatus}" para "${newStatus}"`, { oldStatus, newStatus, reason });
+  return leads[idx];
+}
+
+// Convert lead to client
+export function convertLeadToClient(id: string): Lead | null {
+  const leads = getLeads();
+  const idx = leads.findIndex(l => l.id === id);
+  if (idx === -1) return null;
+  leads[idx] = { ...leads[idx], leadType: 'cliente', status: 'cliente_novo', updatedAt: now() };
+  set(KEYS.LEADS, leads);
+  addActivity(id, 'status_changed', `Lead convertido em Cliente`);
   return leads[idx];
 }
 
