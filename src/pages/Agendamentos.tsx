@@ -137,7 +137,7 @@ export default function Agendamentos() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="bookings">
+      <Tabs defaultValue="calendar">
         <TabsList>
           <TabsTrigger value="calendar">Calendário</TabsTrigger>
           <TabsTrigger value="bookings">Lista</TabsTrigger>
