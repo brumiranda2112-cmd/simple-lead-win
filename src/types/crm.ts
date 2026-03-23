@@ -7,7 +7,7 @@ export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'le
 export type LeadPipelineStatus = 'lead_qualificado' | 'call_diagnostico' | 'proposta_implementacao' | 'call_fechamento' | 'proposta_honorarios' | 'fechado' | 'followup_d1' | 'followup_d2' | 'followup_d3' | 'followup_d4' | 'followup_d5' | 'followup_d6' | 'followup_d7' | 'followup_d8' | 'followup_d9' | 'followup_d10';
 
 // Client pipeline statuses (delivery)
-export type ClientPipelineStatus = 'cliente_novo' | 'diagnostico' | 'call_cliente' | 'mvp_sistema' | 'aprovacao_cliente' | 'contrato_fechado' | 'desenvolvimento' | 'periodo_ajustes' | 'finalizado';
+export type ClientPipelineStatus = 'cliente_novo' | 'mvp' | 'call_apresentacao' | 'aprovacao' | 'desenvolvimento_final' | 'entrega_cliente' | 'ajustes' | 'finalizado';
 
 // Combined status
 export type LeadStatus = LeadPipelineStatus | ClientPipelineStatus;
@@ -128,14 +128,13 @@ export const LEAD_PIPELINE_STATUS_LABELS: Record<LeadPipelineStatus, string> = {
 // Labels for client pipeline
 export const CLIENT_PIPELINE_STATUS_LABELS: Record<ClientPipelineStatus, string> = {
   cliente_novo: 'Cliente Novo',
-  diagnostico: 'Diagnóstico',
-  call_cliente: 'Call com Cliente',
-  mvp_sistema: 'MVP do Sistema',
-  aprovacao_cliente: 'Aprovação do Cliente',
-  contrato_fechado: 'Contrato Fechado',
-  desenvolvimento: 'Desenvolvimento Completo',
-  periodo_ajustes: 'Período de Ajustes',
-  finalizado: 'Cliente Finalizado',
+  mvp: 'MVP',
+  call_apresentacao: 'Call de Apresentação',
+  aprovacao: 'Aprovação',
+  desenvolvimento_final: 'Desenvolvimento Final',
+  entrega_cliente: 'Entrega ao Cliente',
+  ajustes: 'Ajustes',
+  finalizado: 'Finalizado',
 };
 
 // Combined labels
@@ -199,12 +198,11 @@ export const LEAD_PIPELINE_COLUMNS: { status: LeadPipelineStatus; label: string;
 // Client pipeline columns (existing)
 export const PIPELINE_COLUMNS: { status: ClientPipelineStatus; label: string; color: string }[] = [
   { status: 'cliente_novo', label: 'Cliente Novo', color: 'hsl(25, 95%, 53%)' },
-  { status: 'diagnostico', label: 'Diagnóstico', color: 'hsl(45, 93%, 47%)' },
-  { status: 'call_cliente', label: 'Call com Cliente', color: 'hsl(200, 80%, 50%)' },
-  { status: 'mvp_sistema', label: 'MVP do Sistema', color: 'hsl(262, 83%, 58%)' },
-  { status: 'aprovacao_cliente', label: 'Aprovação', color: 'hsl(170, 70%, 45%)' },
-  { status: 'contrato_fechado', label: 'Contrato Fechado', color: 'hsl(142, 71%, 45%)' },
-  { status: 'desenvolvimento', label: 'Desenvolvimento', color: 'hsl(217, 91%, 60%)' },
-  { status: 'periodo_ajustes', label: 'Ajustes', color: 'hsl(30, 80%, 55%)' },
+  { status: 'mvp', label: 'MVP', color: 'hsl(262, 83%, 58%)' },
+  { status: 'call_apresentacao', label: 'Call de Apresentação', color: 'hsl(200, 80%, 50%)' },
+  { status: 'aprovacao', label: 'Aprovação', color: 'hsl(170, 70%, 45%)' },
+  { status: 'desenvolvimento_final', label: 'Desenvolvimento Final', color: 'hsl(217, 91%, 60%)' },
+  { status: 'entrega_cliente', label: 'Entrega ao Cliente', color: 'hsl(45, 93%, 47%)' },
+  { status: 'ajustes', label: 'Ajustes', color: 'hsl(30, 80%, 55%)' },
   { status: 'finalizado', label: 'Finalizado', color: 'hsl(142, 76%, 36%)' },
 ];

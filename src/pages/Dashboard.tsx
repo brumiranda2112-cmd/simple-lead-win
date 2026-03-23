@@ -1,80 +1,90 @@
 import { useMemo } from 'react';
 import * as storage from '@/lib/storage';
-import { PIPELINE_COLUMNS, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_RESPONSIBLE_LABELS, LeadArea, LeadSource, LeadResponsible } from '@/types/crm';
+import { PIPELINE_COLUMNS, LEAD_PIPELINE_COLUMNS, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_RESPONSIBLE_LABELS, LeadArea, LeadSource, LeadResponsible } from '@/types/crm';
 import { Card, CardContent } from '@/components/ui/card';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
-import { Users, UserCheck, TrendingUp, DollarSign, Target, Clock, Trophy, AlertTriangle } from 'lucide-react';
+import { Users, UserCheck, TrendingUp, DollarSign, Target, Clock, Trophy, AlertTriangle, UserPlus, Briefcase } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const CHART_COLORS = ['hsl(25,95%,53%)', 'hsl(142,76%,36%)', 'hsl(45,93%,47%)', 'hsl(217,91%,60%)', 'hsl(262,83%,58%)', 'hsl(0,84%,60%)', 'hsl(200,80%,50%)', 'hsl(170,70%,45%)', 'hsl(30,80%,55%)'];
 
 export default function Dashboard() {
-  const leads = storage.getLeads();
+  const allLeads = storage.getLeads();
+  const leads = storage.getLeadsByType('lead');
+  const clients = storage.getLeadsByType('cliente');
   const tasks = storage.getTasks();
 
   const stats = useMemo(() => {
-    const active = leads.filter(l => l.status !== 'finalizado');
-    const finished = leads.filter(l => l.status === 'finalizado');
-    const contracted = leads.filter(l => ['contrato_fechado', 'desenvolvimento', 'periodo_ajustes', 'finalizado'].includes(l.status));
-    const total = leads.length;
-    const convRate = total > 0 ? (contracted.length / total * 100) : 0;
-    const inPipeline = active.reduce((s, l) => s + (l.estimatedValue || 0), 0);
-    const contractedValue = contracted.reduce((s, l) => s + (l.estimatedValue || 0), 0);
     const pendingTasks = tasks.filter(t => !t.completed).length;
     const overdue = storage.getOverdueTasks().length;
+    const leadsInPipeline = leads.reduce((s, l) => s + (l.estimatedValue || 0), 0);
+    const clientsValue = clients.reduce((s, l) => s + (l.estimatedValue || 0), 0);
+    const finalized = clients.filter(c => c.status === 'finalizado').length;
+    const convRate = leads.length > 0 ? (clients.length / (leads.length + clients.length) * 100) : 0;
 
     return [
-      { label: 'Total Leads', value: total, icon: Users, color: 'text-primary' },
-      { label: 'Leads Ativos', value: active.length, icon: UserCheck, color: 'text-success' },
+      { label: 'Total Leads', value: leads.length, icon: UserPlus, color: 'text-primary' },
+      { label: 'Total Clientes', value: clients.length, icon: Briefcase, color: 'text-accent-foreground' },
       { label: 'Taxa Conversão', value: `${convRate.toFixed(1)}%`, icon: Target, color: 'text-warning' },
-      { label: 'Em Pipeline', value: `R$ ${(inPipeline / 1000).toFixed(0)}k`, icon: TrendingUp, color: 'text-primary' },
-      { label: 'Contratados', value: `R$ ${(contractedValue / 1000).toFixed(0)}k`, icon: Trophy, color: 'text-success' },
-      { label: 'Finalizados', value: finished.length, icon: DollarSign, color: 'text-success' },
+      { label: 'Pipeline Leads', value: `R$ ${(leadsInPipeline / 1000).toFixed(0)}k`, icon: TrendingUp, color: 'text-primary' },
+      { label: 'Pipeline Clientes', value: `R$ ${(clientsValue / 1000).toFixed(0)}k`, icon: Trophy, color: 'text-accent-foreground' },
+      { label: 'Finalizados', value: finalized, icon: DollarSign, color: 'text-accent-foreground' },
       { label: 'Tarefas Pendentes', value: pendingTasks, icon: Clock, color: 'text-warning' },
       { label: 'Tarefas Atrasadas', value: overdue, icon: AlertTriangle, color: 'text-destructive' },
     ];
-  }, [leads, tasks]);
+  }, [leads, clients, tasks]);
 
-  const funnelData = useMemo(() => {
-    return PIPELINE_COLUMNS.map(c => ({
+  const leadFunnelData = useMemo(() => {
+    return LEAD_PIPELINE_COLUMNS.map(c => ({
       name: c.label,
       value: leads.filter(l => l.status === c.status).length,
       fill: c.color,
-    }));
+    })).filter(d => d.value > 0);
   }, [leads]);
+
+  const clientFunnelData = useMemo(() => {
+    return PIPELINE_COLUMNS.map(c => ({
+      name: c.label,
+      value: clients.filter(l => l.status === c.status).length,
+      fill: c.color,
+    }));
+  }, [clients]);
 
   const sourceData = useMemo(() => {
     const counts: Record<string, number> = {};
-    leads.forEach(l => { counts[l.source] = (counts[l.source] || 0) + 1; });
+    allLeads.forEach(l => { counts[l.source] = (counts[l.source] || 0) + 1; });
     return Object.entries(counts).map(([k, v]) => ({ name: LEAD_SOURCE_LABELS[k as LeadSource] || k, value: v }));
-  }, [leads]);
+  }, [allLeads]);
 
   const areaData = useMemo(() => {
     const counts: Record<string, number> = {};
-    leads.forEach(l => { counts[l.area] = (counts[l.area] || 0) + 1; });
+    allLeads.forEach(l => { counts[l.area] = (counts[l.area] || 0) + 1; });
     return Object.entries(counts).map(([k, v]) => ({ name: LEAD_AREA_LABELS[k as LeadArea] || k, value: v }));
-  }, [leads]);
+  }, [allLeads]);
 
   const responsibleData = useMemo(() => {
     const counts: Record<string, number> = {};
-    leads.forEach(l => { if (l.responsible) counts[l.responsible] = (counts[l.responsible] || 0) + 1; });
+    allLeads.forEach(l => { if (l.responsible) counts[l.responsible] = (counts[l.responsible] || 0) + 1; });
     return Object.entries(counts).map(([k, v]) => ({ name: LEAD_RESPONSIBLE_LABELS[k as LeadResponsible] || k, value: v }));
-  }, [leads]);
+  }, [allLeads]);
 
   const timelineData = useMemo(() => {
-    const months: Record<string, { created: number; contracted: number }> = {};
+    const months: Record<string, { leads: number; clientes: number }> = {};
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      months[key] = { created: 0, contracted: 0 };
+      months[key] = { leads: 0, clientes: 0 };
     }
-    leads.forEach(l => {
+    allLeads.forEach(l => {
       const key = l.createdAt.slice(0, 7);
-      if (months[key]) months[key].created++;
-      if (l.status === 'contrato_fechado' && months[l.updatedAt.slice(0, 7)]) months[l.updatedAt.slice(0, 7)].contracted++;
+      if (months[key]) {
+        if (l.leadType === 'cliente') months[key].clientes++;
+        else months[key].leads++;
+      }
     });
     return Object.entries(months).map(([k, v]) => ({ month: k.slice(5) + '/' + k.slice(2, 4), ...v }));
-  }, [leads]);
+  }, [allLeads]);
 
   const tooltipStyle = { contentStyle: { backgroundColor: 'hsl(228,12%,10%)', border: '1px solid hsl(228,12%,18%)', borderRadius: '8px', color: 'hsl(210,40%,96%)' } };
 
@@ -102,22 +112,42 @@ export default function Dashboard() {
         <Card className="border-border/50">
           <CardContent className="p-4">
             <h3 className="text-sm font-semibold mb-4">Funil de Conversão</h3>
-            {funnelData.some(d => d.value > 0) ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <FunnelChart>
-                  <Tooltip {...tooltipStyle} />
-                  <Funnel dataKey="value" data={funnelData} isAnimationActive>
-                    <LabelList position="right" fill="hsl(210,40%,96%)" fontSize={11} dataKey="name" />
-                  </Funnel>
-                </FunnelChart>
-              </ResponsiveContainer>
-            ) : <p className="text-center text-muted-foreground py-16">Adicione leads para ver o funil</p>}
+            <Tabs defaultValue="leads">
+              <TabsList className="mb-3">
+                <TabsTrigger value="leads">Leads</TabsTrigger>
+                <TabsTrigger value="clientes">Clientes</TabsTrigger>
+              </TabsList>
+              <TabsContent value="leads">
+                {leadFunnelData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <FunnelChart>
+                      <Tooltip {...tooltipStyle} />
+                      <Funnel dataKey="value" data={leadFunnelData} isAnimationActive>
+                        <LabelList position="right" fill="hsl(210,40%,96%)" fontSize={11} dataKey="name" />
+                      </Funnel>
+                    </FunnelChart>
+                  </ResponsiveContainer>
+                ) : <p className="text-center text-muted-foreground py-16">Adicione leads para ver o funil</p>}
+              </TabsContent>
+              <TabsContent value="clientes">
+                {clientFunnelData.some(d => d.value > 0) ? (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <FunnelChart>
+                      <Tooltip {...tooltipStyle} />
+                      <Funnel dataKey="value" data={clientFunnelData} isAnimationActive>
+                        <LabelList position="right" fill="hsl(210,40%,96%)" fontSize={11} dataKey="name" />
+                      </Funnel>
+                    </FunnelChart>
+                  </ResponsiveContainer>
+                ) : <p className="text-center text-muted-foreground py-16">Adicione clientes para ver o funil</p>}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
         <Card className="border-border/50">
           <CardContent className="p-4">
-            <h3 className="text-sm font-semibold mb-4">Leads por Origem</h3>
+            <h3 className="text-sm font-semibold mb-4">Por Origem</h3>
             {sourceData.length > 0 ? (
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
@@ -133,7 +163,7 @@ export default function Dashboard() {
 
         <Card className="border-border/50">
           <CardContent className="p-4">
-            <h3 className="text-sm font-semibold mb-4">Leads por Responsável</h3>
+            <h3 className="text-sm font-semibold mb-4">Por Responsável</h3>
             {responsibleData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={responsibleData}>
@@ -155,8 +185,8 @@ export default function Dashboard() {
                 <XAxis dataKey="month" tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'hsl(215,16%,57%)', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <Tooltip {...tooltipStyle} />
-                <Line type="monotone" dataKey="created" name="Criados" stroke="hsl(25,95%,53%)" strokeWidth={2} dot={{ fill: 'hsl(25,95%,53%)' }} />
-                <Line type="monotone" dataKey="contracted" name="Contratados" stroke="hsl(142,76%,36%)" strokeWidth={2} dot={{ fill: 'hsl(142,76%,36%)' }} />
+                <Line type="monotone" dataKey="leads" name="Leads" stroke="hsl(25,95%,53%)" strokeWidth={2} dot={{ fill: 'hsl(25,95%,53%)' }} />
+                <Line type="monotone" dataKey="clientes" name="Clientes" stroke="hsl(142,76%,36%)" strokeWidth={2} dot={{ fill: 'hsl(142,76%,36%)' }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

@@ -71,7 +71,7 @@ export default function Pipeline() {
     if (editLead) {
       storage.updateLead(editLead.id, data);
     } else {
-      storage.createLead({ ...data, leadType: 'cliente', status: 'cliente_novo' });
+      storage.createLead({ ...data, leadType: 'cliente', status: 'cliente_novo' as any });
     }
     setEditLead(null);
     refresh();

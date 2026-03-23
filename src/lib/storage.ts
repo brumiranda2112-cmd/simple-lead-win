@@ -65,7 +65,7 @@ function migrateLeads(leads: Lead[]): Lead[] {
   return leads.map(l => {
     if (!l.leadType) {
       // Existing leads without leadType: check status to determine type
-      const clientStatuses = ['cliente_novo', 'diagnostico', 'call_cliente', 'mvp_sistema', 'aprovacao_cliente', 'contrato_fechado', 'desenvolvimento', 'periodo_ajustes', 'finalizado'];
+      const clientStatuses = ['cliente_novo', 'mvp', 'call_apresentacao', 'aprovacao', 'desenvolvimento_final', 'entrega_cliente', 'ajustes', 'finalizado', 'diagnostico', 'call_cliente', 'mvp_sistema', 'aprovacao_cliente', 'contrato_fechado', 'desenvolvimento', 'periodo_ajustes'];
       return { ...l, leadType: clientStatuses.includes(l.status) ? 'cliente' as LeadType : 'lead' as LeadType };
     }
     return l;
@@ -235,7 +235,7 @@ export function syncRevenueFromLeads() {
   const leads = getLeads();
   const txns = getTransactions();
   const closedLeads = leads.filter(l => 
-    ['contrato_fechado', 'desenvolvimento', 'periodo_ajustes', 'finalizado'].includes(l.status) && l.estimatedValue > 0
+    ['desenvolvimento_final', 'entrega_cliente', 'ajustes', 'finalizado', 'contrato_fechado', 'desenvolvimento', 'periodo_ajustes'].includes(l.status) && l.estimatedValue > 0
   );
   
   closedLeads.forEach(lead => {
