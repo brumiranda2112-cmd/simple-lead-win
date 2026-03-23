@@ -313,10 +313,10 @@ export function CeoBot() {
 
       {/* Chat panel */}
       <div className={cn(
-        'fixed bottom-6 right-6 z-50 w-[420px] h-[600px] max-h-[80vh]',
+        'fixed bottom-6 left-6 z-50 w-[420px] h-[600px] max-h-[80vh]',
         'bg-card border border-border rounded-2xl shadow-2xl shadow-black/40',
         'flex flex-col overflow-hidden',
-        'transition-all duration-300 origin-bottom-right',
+        'transition-all duration-300 origin-bottom-left',
         open ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
       )}>
         {/* Header */}
