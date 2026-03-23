@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarDays, Clock, Settings, Plus, Trash2, Copy, ExternalLink, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { BookingCalendar } from '@/components/BookingCalendar';
 
 const DAY_LABELS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
