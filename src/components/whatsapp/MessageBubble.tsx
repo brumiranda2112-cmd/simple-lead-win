@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { FileText, Check, CheckCheck } from 'lucide-react';
+import { FileText, Check, CheckCheck, Mic } from 'lucide-react';
 import type { Message } from './types';
 
 function StatusIcon({ status }: { status: string | null }) {
@@ -37,8 +37,20 @@ export default function MessageBubble({ message: msg, onImageClick }: Props) {
     }
     if ((type === 'audio' || type === 'ptt') && msg.media_url) {
       return (
-        <audio controls src={msg.media_url}
-          className="max-w-xs w-full [&::-webkit-media-controls-panel]:bg-muted [&::-webkit-media-controls-current-time-display]:text-foreground [&::-webkit-media-controls-time-remaining-display]:text-foreground" />
+        <div className="min-w-[260px]">
+          <audio
+            controls
+            src={msg.media_url}
+            className="w-[260px] h-10"
+            style={{ filter: msg.from_me ? 'brightness(0) invert(1)' : undefined }}
+          />
+          <div className="flex items-center gap-1.5 mt-1">
+            <Mic className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className={`text-[11px] ${msg.from_me ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+              Mensagem de voz
+            </span>
+          </div>
+        </div>
       );
     }
     if (type === 'document' && msg.media_url) {
