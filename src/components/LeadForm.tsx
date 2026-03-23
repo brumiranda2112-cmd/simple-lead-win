@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lead, LeadArea, LeadSource, LeadStatus, LeadResponsible, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_STATUS_LABELS, LEAD_RESPONSIBLE_LABELS } from '@/types/crm';
+import { Lead, LeadArea, LeadSource, LeadStatus, LeadResponsible, LeadType, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_PIPELINE_STATUS_LABELS, CLIENT_PIPELINE_STATUS_LABELS, LEAD_RESPONSIBLE_LABELS } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,9 +12,10 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   lead?: Lead | null;
   onSave: (data: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  defaultLeadType?: LeadType;
 }
 
-export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
+export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = 'lead' }: Props) {
   const [form, setForm] = useState({
     name: lead?.name || '',
     email: lead?.email || '',
@@ -24,8 +25,8 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
     source: lead?.source || 'indicacao' as LeadSource,
     responsible: lead?.responsible || 'bruno' as LeadResponsible,
     estimatedValue: lead?.estimatedValue || 0,
-    status: lead?.status || 'lead_qualificado' as LeadStatus,
-    leadType: lead?.leadType || 'lead' as const,
+    leadType: lead?.leadType || defaultLeadType,
+    status: lead?.status || (defaultLeadType === 'cliente' ? 'cliente_novo' : 'lead_qualificado') as LeadStatus,
     notes: lead?.notes || '',
     nextFollowup: lead?.nextFollowup || null,
     wonLostReason: lead?.wonLostReason || '',
@@ -44,11 +45,14 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
 
   const update = (field: string, value: unknown) => setForm(prev => ({ ...prev, [field]: value }));
 
+  const statusLabels = form.leadType === 'cliente' ? CLIENT_PIPELINE_STATUS_LABELS : LEAD_PIPELINE_STATUS_LABELS;
+  const entityLabel = form.leadType === 'cliente' ? 'Cliente' : 'Lead';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{lead ? 'Editar Lead' : 'Novo Lead'}</DialogTitle>
+          <DialogTitle>{lead ? `Editar ${entityLabel}` : `Novo ${entityLabel}`}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -118,7 +122,7 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
               <Select value={form.status} onValueChange={v => update('status', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(LEAD_STATUS_LABELS).map(([k, v]) => (
+                  {Object.entries(statusLabels).map(([k, v]) => (
                     <SelectItem key={k} value={k}>{v}</SelectItem>
                   ))}
                 </SelectContent>
@@ -131,7 +135,7 @@ export function LeadForm({ open, onOpenChange, lead, onSave }: Props) {
           </div>
           <div className="space-y-2">
             <Label>Observações</Label>
-            <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} placeholder="Notas sobre o lead..." rows={3} />
+            <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} placeholder="Notas..." rows={3} />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <DialogFooter>
