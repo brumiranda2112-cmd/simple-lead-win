@@ -65,7 +65,7 @@ function migrateLeads(leads: Lead[]): Lead[] {
   return leads.map(l => {
     if (!l.leadType) {
       // Existing leads without leadType: check status to determine type
-      const clientStatuses = ['cliente_novo', 'diagnostico', 'call_cliente', 'mvp_sistema', 'aprovacao_cliente', 'contrato_fechado', 'desenvolvimento', 'periodo_ajustes', 'finalizado'];
+      const clientStatuses = ['cliente_novo', 'mvp', 'call_apresentacao', 'aprovacao', 'desenvolvimento_final', 'entrega_cliente', 'ajustes', 'finalizado', 'diagnostico', 'call_cliente', 'mvp_sistema', 'aprovacao_cliente', 'contrato_fechado', 'desenvolvimento', 'periodo_ajustes'];
       return { ...l, leadType: clientStatuses.includes(l.status) ? 'cliente' as LeadType : 'lead' as LeadType };
     }
     return l;
