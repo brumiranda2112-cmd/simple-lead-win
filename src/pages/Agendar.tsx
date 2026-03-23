@@ -114,11 +114,13 @@ export default function Agendar() {
     return slots;
   }, [selectedDate, selectedType, availability, existingBookings]);
 
-  const sendWhatsAppConfirmation = (phone: string, name: string, typeName: string, date: string, time: string) => {
-    const cleanPhone = phone.replace(/\D/g, '');
+  const getWhatsAppLink = () => {
+    if (!selectedType || !selectedDate || !selectedTime) return '#';
+    const cleanPhone = formData.phone.replace(/\D/g, '');
     const phoneNumber = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
-    const message = `✅ *Agendamento Confirmado!*\n\nOlá ${name}, seu agendamento foi confirmado com sucesso!\n\n📋 *Serviço:* ${typeName}\n📅 *Data:* ${date}\n🕐 *Horário:* ${time}\n\nEm caso de imprevisto, entre em contato para reagendar.\n\n_KHRÓNOS AI_`;
-    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    const dateStr = format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    const message = `✅ *Agendamento Confirmado!*\n\nOlá ${formData.name}, seu agendamento foi confirmado com sucesso!\n\n📋 *Serviço:* ${selectedType.name}\n📅 *Data:* ${dateStr}\n🕐 *Horário:* ${selectedTime}\n\nEm caso de imprevisto, entre em contato para reagendar.\n\n_KHRÓNOS AI_`;
+    return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
   };
 
   const handleSubmit = async () => {
