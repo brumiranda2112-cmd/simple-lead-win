@@ -72,6 +72,11 @@ export function AppSidebar() {
                               {pendingCount}
                             </Badge>
                           )}
+                          {item.title === 'WhatsApp' && whatsappUnread > 0 && (
+                            <Badge className="ml-2 text-[10px] h-5 min-w-5 flex items-center justify-center bg-green-600 text-white">
+                              {whatsappUnread}
+                            </Badge>
+                          )}
                         </span>
                       )}
                     </NavLink>
