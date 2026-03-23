@@ -235,7 +235,7 @@ export function syncRevenueFromLeads() {
   const leads = getLeads();
   const txns = getTransactions();
   const closedLeads = leads.filter(l => 
-    ['contrato_fechado', 'desenvolvimento', 'periodo_ajustes', 'finalizado'].includes(l.status) && l.estimatedValue > 0
+    ['desenvolvimento_final', 'entrega_cliente', 'ajustes', 'finalizado', 'contrato_fechado', 'desenvolvimento', 'periodo_ajustes'].includes(l.status) && l.estimatedValue > 0
   );
   
   closedLeads.forEach(lead => {

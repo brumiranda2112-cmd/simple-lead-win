@@ -198,12 +198,11 @@ export const LEAD_PIPELINE_COLUMNS: { status: LeadPipelineStatus; label: string;
 // Client pipeline columns (existing)
 export const PIPELINE_COLUMNS: { status: ClientPipelineStatus; label: string; color: string }[] = [
   { status: 'cliente_novo', label: 'Cliente Novo', color: 'hsl(25, 95%, 53%)' },
-  { status: 'diagnostico', label: 'Diagnóstico', color: 'hsl(45, 93%, 47%)' },
-  { status: 'call_cliente', label: 'Call com Cliente', color: 'hsl(200, 80%, 50%)' },
-  { status: 'mvp_sistema', label: 'MVP do Sistema', color: 'hsl(262, 83%, 58%)' },
-  { status: 'aprovacao_cliente', label: 'Aprovação', color: 'hsl(170, 70%, 45%)' },
-  { status: 'contrato_fechado', label: 'Contrato Fechado', color: 'hsl(142, 71%, 45%)' },
-  { status: 'desenvolvimento', label: 'Desenvolvimento', color: 'hsl(217, 91%, 60%)' },
-  { status: 'periodo_ajustes', label: 'Ajustes', color: 'hsl(30, 80%, 55%)' },
+  { status: 'mvp', label: 'MVP', color: 'hsl(262, 83%, 58%)' },
+  { status: 'call_apresentacao', label: 'Call de Apresentação', color: 'hsl(200, 80%, 50%)' },
+  { status: 'aprovacao', label: 'Aprovação', color: 'hsl(170, 70%, 45%)' },
+  { status: 'desenvolvimento_final', label: 'Desenvolvimento Final', color: 'hsl(217, 91%, 60%)' },
+  { status: 'entrega_cliente', label: 'Entrega ao Cliente', color: 'hsl(45, 93%, 47%)' },
+  { status: 'ajustes', label: 'Ajustes', color: 'hsl(30, 80%, 55%)' },
   { status: 'finalizado', label: 'Finalizado', color: 'hsl(142, 76%, 36%)' },
 ];
