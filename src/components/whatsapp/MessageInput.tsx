@@ -1,19 +1,35 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Send, Paperclip, Zap, Smile } from 'lucide-react';
-import { QUICK_REPLIES, EMOJI_LIST } from './types';
+import { supabase } from '@/integrations/supabase/client';
+import { EMOJI_LIST } from './types';
+import AudioRecorder from './AudioRecorder';
+
+interface QuickReply {
+  id: string;
+  title: string;
+  message: string;
+}
 
 interface Props {
   onSend: (text: string) => void;
   onFileSelect: (file: File) => void;
+  onAudioRecorded: (blob: Blob) => void;
   sending: boolean;
 }
 
-export default function MessageInput({ onSend, onFileSelect, sending }: Props) {
+export default function MessageInput({ onSend, onFileSelect, onAudioRecorded, sending }: Props) {
   const [newMsg, setNewMsg] = useState('');
+  const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    supabase.from('quick_replies').select('*').order('created_at').then(({ data }) => {
+      setQuickReplies((data as QuickReply[]) || []);
+    });
+  }, []);
 
   const handleSend = () => {
     if (!newMsg.trim()) return;
@@ -52,14 +68,16 @@ export default function MessageInput({ onSend, onFileSelect, sending }: Props) {
           </PopoverTrigger>
           <PopoverContent className="w-64 p-2" side="top">
             <p className="text-xs font-medium text-muted-foreground mb-2">Respostas rápidas</p>
-            <div className="space-y-1">
-              {QUICK_REPLIES.map((qr, i) => (
-                <button key={i} onClick={() => { setNewMsg(qr.text); }}
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {quickReplies.length > 0 ? quickReplies.map(qr => (
+                <button key={qr.id} onClick={() => setNewMsg(qr.message)}
                   className="w-full text-left text-xs p-2 rounded hover:bg-muted/50 transition-colors">
-                  <span className="font-medium text-foreground">{qr.label}</span>
-                  <span className="block text-muted-foreground truncate">{qr.text}</span>
+                  <span className="font-medium text-foreground">{qr.title}</span>
+                  <span className="block text-muted-foreground truncate">{qr.message}</span>
                 </button>
-              ))}
+              )) : (
+                <p className="text-xs text-muted-foreground p-2">Nenhuma mensagem rápida cadastrada. Configure em Admin → Mensagens Rápidas.</p>
+              )}
             </div>
           </PopoverContent>
         </Popover>
@@ -88,6 +106,9 @@ export default function MessageInput({ onSend, onFileSelect, sending }: Props) {
           onClick={() => fileInputRef.current?.click()} disabled={sending}>
           <Paperclip className="h-4 w-4" />
         </Button>
+
+        {/* Audio Recorder */}
+        <AudioRecorder onRecorded={onAudioRecorded} disabled={sending} />
 
         <Textarea value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={handleKeyDown}
           placeholder="Digite uma mensagem..." disabled={sending} rows={1}
