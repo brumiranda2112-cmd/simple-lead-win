@@ -137,6 +137,7 @@ export default function WhatsAppConnection() {
               <Wifi className="h-5 w-5 text-emerald-500" />
               <span className="font-medium">WhatsApp Conectado ✅</span>
             </div>
+            {profileName && <p className="text-sm font-medium">{profileName}</p>}
             {phone && <p className="text-sm text-muted-foreground">Número: +{phone}</p>}
             <Button variant="destructive" size="sm" onClick={handleDisconnect}>
               <WifiOff className="h-4 w-4 mr-2" /> Desconectar
