@@ -139,10 +139,15 @@ export default function Agendamentos() {
 
       <Tabs defaultValue="bookings">
         <TabsList>
-          <TabsTrigger value="bookings">Agendamentos</TabsTrigger>
+          <TabsTrigger value="calendar">Calendário</TabsTrigger>
+          <TabsTrigger value="bookings">Lista</TabsTrigger>
           <TabsTrigger value="types">Tipos de Reunião</TabsTrigger>
           <TabsTrigger value="availability">Disponibilidade</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="calendar">
+          <BookingCalendar bookings={bookings} />
+        </TabsContent>
 
         {/* Bookings list */}
         <TabsContent value="bookings" className="space-y-4">
