@@ -207,6 +207,7 @@ export type Database = {
       }
       whatsapp_conversations: {
         Row: {
+          assigned_to: string | null
           contact_name: string | null
           contact_photo: string | null
           created_at: string | null
@@ -215,11 +216,13 @@ export type Database = {
           last_message_at: string | null
           lead_id: string | null
           phone: string
+          priority: string | null
           status: string | null
           unread_count: number | null
           updated_at: string | null
         }
         Insert: {
+          assigned_to?: string | null
           contact_name?: string | null
           contact_photo?: string | null
           created_at?: string | null
@@ -228,11 +231,13 @@ export type Database = {
           last_message_at?: string | null
           lead_id?: string | null
           phone: string
+          priority?: string | null
           status?: string | null
           unread_count?: number | null
           updated_at?: string | null
         }
         Update: {
+          assigned_to?: string | null
           contact_name?: string | null
           contact_photo?: string | null
           created_at?: string | null
@@ -241,11 +246,20 @@ export type Database = {
           last_message_at?: string | null
           lead_id?: string | null
           phone?: string
+          priority?: string | null
           status?: string | null
           unread_count?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       whatsapp_messages: {
         Row: {
