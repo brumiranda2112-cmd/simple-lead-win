@@ -2,7 +2,9 @@ import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut, DollarSign, Shield
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getOverdueTasks, getTodayTasks } from '@/lib/storage';
+import { getTotalUnread } from '@/lib/whatsappService';
 import iconKhronos from '@/assets/icon-khronos.png';
+import { useEffect, useState } from 'react';
 import {
   Sidebar,
   SidebarContent,
