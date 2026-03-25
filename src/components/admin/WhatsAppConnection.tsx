@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { evolutionApi } from '@/lib/evolutionProxy';
+import { evolutionApi, isEvolutionApiFailure } from '@/lib/evolutionProxy';
 import { Loader2, Wifi, WifiOff, QrCode, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -17,72 +17,81 @@ export default function WhatsAppConnection() {
   const [profileName, setProfileName] = useState('');
 
   const checkStatus = useCallback(async () => {
-    try {
-      const instances = await evolutionApi('instance/fetchInstances');
-      console.log('fetchInstances response:', JSON.stringify(instances));
-      if (Array.isArray(instances) && instances.length > 0) {
-        const inst = instances.find((i: any) => i.instance?.instanceName === 'crm-whatsapp') || instances[0];
-        const instStatus = inst?.instance?.status;
-        console.log('Instance status:', instStatus);
-        if (instStatus === 'open') {
-          const owner = inst?.instance?.owner || '';
-          setPhone(owner.replace('@s.whatsapp.net', ''));
-          setProfileName(inst?.instance?.profileName || '');
-          setStatus('connected');
-          setShowQr(false);
-          setQrBase64(null);
-          return true;
-        }
-      }
-      setStatus('disconnected');
-      return false;
-    } catch (err) {
-      console.error('checkStatus error:', err);
+    const instances = await evolutionApi('instance/fetchInstances', 'GET', undefined, { throwOnError: false });
+
+    if (isEvolutionApiFailure(instances)) {
       setStatus('disconnected');
       return false;
     }
+
+    if (Array.isArray(instances) && instances.length > 0) {
+      const inst = instances.find((i: any) => i.instance?.instanceName === 'crm-whatsapp') || instances[0];
+      const instStatus = inst?.instance?.status;
+      if (instStatus === 'open') {
+        const owner = inst?.instance?.owner || '';
+        setPhone(owner.replace('@s.whatsapp.net', ''));
+        setProfileName(inst?.instance?.profileName || '');
+        setStatus('connected');
+        setShowQr(false);
+        setQrBase64(null);
+        return true;
+      }
+    }
+
+    setStatus('disconnected');
+    return false;
   }, []);
 
   useEffect(() => { checkStatus(); }, [checkStatus]);
 
   const ensureInstance = useCallback(async () => {
-    try {
-      const instances = await evolutionApi('instance/fetchInstances');
-      if (Array.isArray(instances) && instances.some((i: any) => i.instance?.instanceName === 'crm-whatsapp')) {
-        return;
-      }
-      await evolutionApi('instance/create', 'POST', {
-        instanceName: 'crm-whatsapp',
-        integration: 'WHATSAPP-BAILEYS',
-        qrcode: true,
-      });
-    } catch (e) {
-      console.warn('ensureInstance error:', e);
+    const instances = await evolutionApi('instance/fetchInstances', 'GET', undefined, { throwOnError: false });
+    if (isEvolutionApiFailure(instances)) {
+      return false;
     }
+
+    if (Array.isArray(instances) && instances.some((i: any) => i.instance?.instanceName === 'crm-whatsapp')) {
+      return true;
+    }
+
+    const created = await evolutionApi('instance/create', 'POST', {
+      instanceName: 'crm-whatsapp',
+      integration: 'WHATSAPP-BAILEYS',
+      qrcode: true,
+    }, { throwOnError: false });
+
+    return !isEvolutionApiFailure(created);
   }, []);
 
   const fetchQr = useCallback(async () => {
     setFetching(true);
     retryRef.current = 0;
 
-    await ensureInstance();
+    const canProceed = await ensureInstance();
+    if (!canProceed) {
+      setFetching(false);
+      return;
+    }
 
     const attempt = async (): Promise<void> => {
-      try {
-        const data = await evolutionApi('instance/connect/crm-whatsapp');
-        const qr = data?.base64 || data?.qrcode?.base64 || data?.qr || data?.code || null;
-        if (qr) {
-          setQrBase64(qr);
-          setFetching(false);
-          return;
-        }
-        retryRef.current++;
-        if (retryRef.current < 10) {
-          retryTimerRef.current = setTimeout(attempt, 3000);
-        } else {
-          setFetching(false);
-        }
-      } catch {
+      const data = await evolutionApi('instance/connect/crm-whatsapp', 'GET', undefined, { throwOnError: false });
+
+      if (isEvolutionApiFailure(data)) {
+        setFetching(false);
+        return;
+      }
+
+      const qr = data?.base64 || data?.qrcode?.base64 || data?.qr || data?.code || null;
+      if (qr) {
+        setQrBase64(qr);
+        setFetching(false);
+        return;
+      }
+
+      retryRef.current++;
+      if (retryRef.current < 10) {
+        retryTimerRef.current = setTimeout(attempt, 3000);
+      } else {
         setFetching(false);
       }
     };
