@@ -294,12 +294,7 @@ function EditUserForm({ user, onSuccess, callAdmin }: { user: UserWithRole; onSu
       </div>
       <div className="space-y-2">
         <Label>Responsável CRM</Label>
-        <Select value={responsibleKey} onValueChange={setResponsibleKey}>
-          <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-          <SelectContent>
-            {RESPONSIBLE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <Input value={responsibleKey} onChange={e => setResponsibleKey(e.target.value)} placeholder="Nome ou identificador (opcional)" />
       </div>
       <div className="flex items-center gap-2">
         <input type="checkbox" id="active" checked={isActive} onChange={e => setIsActive(e.target.checked)} className="rounded" />
