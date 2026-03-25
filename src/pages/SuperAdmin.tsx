@@ -127,7 +127,8 @@ export default function SuperAdmin() {
   // For each tenant group, find root admin (tenant_id === own id)
   const tenants = Object.entries(tenantGroups).map(([tenantId, members]) => {
     const root = members.find(m => m.id === tenantId) || members[0];
-    return { tenantId, rootName: root?.name || 'Desconhecido', rootEmail: root?.email || '', members };
+    const allActive = members.every(m => m.is_active);
+    return { tenantId, rootName: root?.name || 'Desconhecido', rootEmail: root?.email || '', members, allActive };
   });
 
   const totalClients = tenants.length;
