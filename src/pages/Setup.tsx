@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useBranding } from '@/contexts/BrandingContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,11 @@ import logoKhronos from '@/assets/logo-khronos.png';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
+const MASTER_EMAIL = 'khronos@crm.ia';
+
 export default function Setup() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const { branding } = useBranding();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,6 +23,9 @@ export default function Setup() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Only accessible when logged in as master account
+  const isMaster = user?.email?.toLowerCase() === MASTER_EMAIL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,23 +43,36 @@ export default function Setup() {
       setError('As senhas não coincidem');
       return;
     }
+    if (email.toLowerCase() === MASTER_EMAIL) {
+      setError('Não é possível usar este email');
+      return;
+    }
 
     setLoading(true);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('bootstrap-admin', {
-        body: { email, password, name },
+      // Use admin-create-user edge function (caller is authenticated as master/admin)
+      const { data, error: fnError } = await supabase.functions.invoke('admin-create-user', {
+        body: { action: 'create_user', email, password, name, role: 'admin' },
       });
 
       if (fnError) throw new Error(fnError.message);
       if (data?.error) throw new Error(data.error);
 
-      toast.success('Administrador criado com sucesso! Faça login para acessar.');
+      toast.success('Conta criada com sucesso! Faça login com suas novas credenciais.');
+      
+      // Logout from master account so user can login with their new account
+      await logout();
       navigate('/login');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Erro ao criar conta');
     }
     setLoading(false);
   };
+
+  if (!isMaster) {
+    navigate('/');
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -67,7 +87,7 @@ export default function Setup() {
               Configuração Inicial
             </CardTitle>
             <CardDescription className="mt-2">
-              Crie a conta de administrador para começar a usar o {branding.companyName} {branding.crmLabel}
+              Crie sua conta de administrador para começar a usar o sistema
             </CardDescription>
           </div>
         </CardHeader>
@@ -91,7 +111,7 @@ export default function Setup() {
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Criando...</> : 'Criar Administrador'}
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Criando...</> : 'Criar minha conta'}
             </Button>
           </form>
         </CardContent>
