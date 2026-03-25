@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { setStorageUserId } from '@/lib/storage';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface UserProfile {
@@ -65,8 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(sess?.user ?? null);
 
       if (sess?.user) {
+        setStorageUserId(sess.user.id);
         setTimeout(() => fetchUserData(sess.user.id), 0);
       } else {
+        setStorageUserId(null);
         setProfile(null);
         setRole(null);
         setPermissions([]);
@@ -78,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
+        setStorageUserId(sess.user.id);
         fetchUserData(sess.user.id);
       }
       setIsLoading(false);
@@ -94,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
+    setStorageUserId(null);
     setUser(null);
     setSession(null);
     setProfile(null);
