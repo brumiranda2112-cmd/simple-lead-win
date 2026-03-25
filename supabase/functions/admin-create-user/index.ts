@@ -178,6 +178,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "toggle_tenant") {
+      // Super admin only - activate/deactivate all users of a tenant
+      if (!isSuperAdmin) {
+        return new Response(JSON.stringify({ error: "Super admin access required" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { tenant_id, is_active } = body;
+      await adminClient.from("profiles").update({ is_active }).eq("tenant_id", tenant_id);
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
