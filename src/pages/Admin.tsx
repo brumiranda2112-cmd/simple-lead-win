@@ -72,19 +72,6 @@ export default function Admin() {
     return data;
   };
 
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Card className="max-w-md">
-          <CardContent className="pt-6 text-center">
-            <ShieldAlert className="h-12 w-12 mx-auto text-destructive mb-4" />
-            <h2 className="text-xl font-semibold">Acesso Restrito</h2>
-            <p className="text-muted-foreground mt-2">Você não tem permissão para acessar esta área.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
