@@ -29,14 +29,22 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md border-border/50">
+    <div
+      className="min-h-screen flex items-center justify-center bg-background p-4"
+      style={branding.loginBgUrl ? {
+        backgroundImage: `url(${branding.loginBgUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      } : undefined}
+    >
+      {branding.loginBgUrl && <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />}
+      <Card className="w-full max-w-md border-border/50 relative z-10">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
-            <img src={logoKhronos} alt="KHRÓNOS AI" className="h-28 mx-auto" />
+            <img src={branding.fullLogoUrl || logoKhronos} alt={branding.companyName} className="h-28 mx-auto object-contain" />
           </div>
           <div>
-            <CardTitle className="text-2xl">KHRÓNOS <span className="text-primary">CRM</span></CardTitle>
+            <CardTitle className="text-2xl">{branding.companyName} <span className="text-primary">{branding.crmLabel}</span></CardTitle>
             <CardDescription className="mt-1">
               Entre com suas credenciais
             </CardDescription>

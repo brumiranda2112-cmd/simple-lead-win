@@ -197,6 +197,10 @@ export default function Admin() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="branding" className="mt-4">
+          <BrandingManager />
+        </TabsContent>
+
         <TabsContent value="whatsapp" className="mt-4">
           <WhatsAppConnection />
         </TabsContent>

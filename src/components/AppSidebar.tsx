@@ -51,8 +51,8 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center gap-2 text-xs uppercase tracking-wider py-3">
-            <img src={iconKhronos} alt="K" className="h-7 w-7 rounded-md" />
-            {!collapsed && <span className="font-bold text-sm tracking-normal normal-case text-foreground">KHRÓNOS <span className="text-primary">CRM</span></span>}
+            <img src={branding.logoUrl || iconKhronos} alt="K" className="h-7 w-7 rounded-md object-cover" />
+            {!collapsed && <span className="font-bold text-sm tracking-normal normal-case text-foreground">{branding.companyName} <span className="text-primary">{branding.crmLabel}</span></span>}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
