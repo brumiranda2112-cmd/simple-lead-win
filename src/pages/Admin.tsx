@@ -15,6 +15,7 @@ import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldA
 import WhatsAppConnection from '@/components/admin/WhatsAppConnection';
 import QuickRepliesManager from '@/components/admin/QuickRepliesManager';
 import LabelsManager from '@/components/admin/LabelsManager';
+import BrandingManager from '@/components/admin/BrandingManager';
 
 interface UserWithRole {
   id: string;
@@ -99,6 +100,7 @@ export default function Admin() {
       <Tabs defaultValue="users">
         <TabsList>
           <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="branding">Personalização</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="quick-replies">Mensagens Rápidas</TabsTrigger>
           <TabsTrigger value="labels">Etiquetas</TabsTrigger>
@@ -193,6 +195,10 @@ export default function Admin() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="branding" className="mt-4">
+          <BrandingManager />
         </TabsContent>
 
         <TabsContent value="whatsapp" className="mt-4">
