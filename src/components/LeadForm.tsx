@@ -23,7 +23,7 @@ export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = '
     company: lead?.company || '',
     area: lead?.area || 'agentes_ia' as LeadArea,
     source: lead?.source || 'indicacao' as LeadSource,
-    responsible: lead?.responsible || 'bruno' as LeadResponsible,
+    responsible: lead?.responsible || '',
     estimatedValue: lead?.estimatedValue || 0,
     leadType: lead?.leadType || defaultLeadType,
     status: lead?.status || (defaultLeadType === 'cliente' ? 'cliente_novo' : 'lead_qualificado') as LeadStatus,
