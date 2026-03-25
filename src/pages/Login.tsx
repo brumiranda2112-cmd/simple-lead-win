@@ -21,11 +21,8 @@ export default function Login() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Ensure default admin exists on first access
-    supabase.functions.invoke('bootstrap-admin', { method: 'GET' })
-      .catch(() => {})
-      .finally(() => setChecking(false));
-  }, [navigate]);
+    setChecking(false);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
