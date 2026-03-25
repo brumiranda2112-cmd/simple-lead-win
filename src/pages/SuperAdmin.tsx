@@ -27,7 +27,7 @@ interface TenantUser {
 }
 
 export default function SuperAdmin() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [users, setUsers] = useState<TenantUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [resetUser, setResetUser] = useState<TenantUser | null>(null);
@@ -136,11 +136,16 @@ export default function SuperAdmin() {
 
   return (
     <div className="min-h-screen bg-background p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Shield className="h-6 w-6 text-primary" /> Painel Super Admin — Khronos
-        </h1>
-        <p className="text-muted-foreground">Controle total de clientes e usuários da plataforma</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Shield className="h-6 w-6 text-primary" /> Painel Super Admin — Khronos
+          </h1>
+          <p className="text-muted-foreground">Controle total de clientes e usuários da plataforma</p>
+        </div>
+        <Button variant="outline" onClick={async () => { await logout(); window.location.href = '/login'; }}>
+          <PowerOff className="h-4 w-4 mr-2" /> Sair
+        </Button>
       </div>
 
       {/* Stats */}
