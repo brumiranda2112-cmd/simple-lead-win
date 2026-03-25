@@ -159,7 +159,7 @@ export default function Admin() {
                             <Badge className={ROLE_LABELS[u.role]?.color || ''}>{ROLE_LABELS[u.role]?.label || u.role}</Badge>
                           ) : <Badge variant="outline">Sem função</Badge>}
                         </TableCell>
-                        <TableCell>{RESPONSIBLE_OPTIONS.find(r => r.value === u.responsible_key)?.label || '—'}</TableCell>
+                        <TableCell>{u.responsible_key || '—'}</TableCell>
                         <TableCell><Badge variant={u.is_active ? 'default' : 'secondary'}>{u.is_active ? 'Ativo' : 'Inativo'}</Badge></TableCell>
                         <TableCell className="text-right space-x-1">
                           <Button size="icon" variant="ghost" onClick={() => setEditUser(u)}><Pencil className="h-4 w-4" /></Button>
