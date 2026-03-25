@@ -6,7 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Plus, ArrowUpDown } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, Plus, ArrowUpDown, Trash2, CheckSquare, X } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Conversation, TabType, Profile } from './types';
@@ -31,13 +32,16 @@ interface Props {
   profiles: Profile[];
   onSelect: (c: Conversation) => void;
   onNewConversation: () => void;
+  onDeleteMultiple?: (ids: string[]) => void;
 }
 
-export default function ConversationList({ conversations, selectedConv, profiles, onSelect, onNewConversation }: Props) {
+export default function ConversationList({ conversations, selectedConv, profiles, onSelect, onNewConversation, onDeleteMultiple }: Props) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<TabType>('active');
   const [sortBy, setSortBy] = useState<'date' | 'priority'>('date');
   const [filterAssigned, setFilterAssigned] = useState<string>('all');
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const isGroup = (c: Conversation) => c.phone.includes('@g.us') || /[a-zA-Z]/.test(c.phone.replace('@g.us', '').replace('@s.whatsapp.net', '').replace('@c.us', ''));
   const isFinished = (c: Conversation) => (c as any).status === 'finished';
@@ -69,15 +73,66 @@ export default function ConversationList({ conversations, selectedConv, profiles
   const countFinished = conversations.filter(c => !isGroup(c) && isFinished(c)).length;
   const countGroups = conversations.filter(c => isGroup(c)).length;
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === sorted.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(sorted.map(c => c.id)));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    const confirmed = window.confirm(`Excluir ${selectedIds.size} conversa(s) e todas as mensagens?`);
+    if (!confirmed) return;
+    onDeleteMultiple?.(Array.from(selectedIds));
+    setSelectedIds(new Set());
+    setSelectMode(false);
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="flex flex-col h-full border-r border-border/50">
       {/* Header */}
       <div className="p-3 border-b border-border/50 space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground">WhatsApp</h2>
-          <Button size="sm" onClick={onNewConversation} className="gap-1">
-            <Plus className="h-4 w-4" /> Nova
-          </Button>
+          <div className="flex items-center gap-1">
+            {!selectMode ? (
+              <>
+                <Button size="sm" variant="ghost" onClick={() => setSelectMode(true)} title="Selecionar">
+                  <CheckSquare className="h-4 w-4" />
+                </Button>
+                <Button size="sm" onClick={onNewConversation} className="gap-1">
+                  <Plus className="h-4 w-4" /> Nova
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="sm" variant="ghost" onClick={toggleSelectAll} className="text-xs">
+                  {selectedIds.size === sorted.length ? 'Desmarcar' : 'Selecionar tudo'}
+                </Button>
+                <Button size="sm" variant="destructive" onClick={handleDeleteSelected} disabled={selectedIds.size === 0} className="gap-1">
+                  <Trash2 className="h-3.5 w-3.5" /> ({selectedIds.size})
+                </Button>
+                <Button size="sm" variant="ghost" onClick={exitSelectMode}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -88,7 +143,7 @@ export default function ConversationList({ conversations, selectedConv, profiles
 
       {/* Tabs */}
       <div className="px-3 pt-2">
-        <Tabs value={tab} onValueChange={v => setTab(v as TabType)}>
+        <Tabs value={tab} onValueChange={v => { setTab(v as TabType); setSelectedIds(new Set()); }}>
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="active" className="text-xs gap-1">
               Ativas <Badge variant="secondary" className="h-5 min-w-5 text-[10px]">{countActive}</Badge>
@@ -129,9 +184,18 @@ export default function ConversationList({ conversations, selectedConv, profiles
           <p className="text-center text-muted-foreground text-sm py-8">Nenhuma conversa</p>
         )}
         {sorted.map(conv => (
-          <button key={conv.id} onClick={() => onSelect(conv)}
+          <button key={conv.id}
+            onClick={() => selectMode ? toggleSelect(conv.id) : onSelect(conv)}
             className={`w-full flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors text-left
-              ${selectedConv?.id === conv.id ? 'bg-muted/50' : ''}`}>
+              ${selectedConv?.id === conv.id && !selectMode ? 'bg-muted/50' : ''}
+              ${selectedIds.has(conv.id) ? 'bg-destructive/10' : ''}`}>
+            {selectMode && (
+              <Checkbox
+                checked={selectedIds.has(conv.id)}
+                onCheckedChange={() => toggleSelect(conv.id)}
+                className="shrink-0"
+              />
+            )}
             <Avatar className="h-10 w-10 shrink-0">
               {conv.contact_photo && <AvatarImage src={conv.contact_photo} />}
               <AvatarFallback className="bg-primary/20 text-primary text-sm">
