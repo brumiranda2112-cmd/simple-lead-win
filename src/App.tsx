@@ -17,6 +17,7 @@ import Agendamentos from "./pages/Agendamentos";
 import Agendar from "./pages/Agendar";
 import WhatsAppInbox from "./pages/WhatsAppInbox";
 import Admin from "./pages/Admin";
+import Setup from "./pages/Setup";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
