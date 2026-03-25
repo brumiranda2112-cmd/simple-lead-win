@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ArrowLeft, UserPlus, PhoneOff, ArrowRightLeft, MoreVertical, BellOff, Ban, Clock, Kanban } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ArrowLeft, UserPlus, PhoneOff, ArrowRightLeft, MoreVertical, BellOff, Ban, Clock, Kanban, Trash2 } from 'lucide-react';
 import type { Conversation, Profile } from './types';
 import LabelsPicker from './LabelsPicker';
 
