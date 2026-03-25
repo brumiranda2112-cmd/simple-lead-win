@@ -27,7 +27,7 @@ interface TenantUser {
 }
 
 export default function SuperAdmin() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [users, setUsers] = useState<TenantUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [resetUser, setResetUser] = useState<TenantUser | null>(null);
