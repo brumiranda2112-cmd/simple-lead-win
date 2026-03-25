@@ -10,6 +10,7 @@ import { Loader2 } from 'lucide-react';
 
 export default function Login() {
   const { login } = useAuth();
+  const { branding } = useBranding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
