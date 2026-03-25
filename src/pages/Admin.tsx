@@ -40,6 +40,8 @@ const RESPONSIBLE_OPTIONS = [
   { value: 'ana_luiza', label: 'Ana Luiza' },
 ];
 
+const SYSTEM_EMAILS = ['khronos@crm.ia', 'bruno.fontes@khronos.ia'];
+
 export default function Admin() {
   const { isAdmin } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
