@@ -102,6 +102,10 @@ export default function ChatHeader({ conversation, profiles, onBack, onCreateLea
             <DropdownMenuItem className="text-destructive">
               <Ban className="h-4 w-4 mr-2" /> Bloquear contato
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+              <Trash2 className="h-4 w-4 mr-2" /> Excluir conversa
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
