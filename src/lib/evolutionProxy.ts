@@ -6,21 +6,54 @@ type EvolutionErrorPayload = {
   upstream_status?: number;
 };
 
-export async function evolutionApi(path: string, method = "GET", body?: object) {
+type EvolutionApiOptions = {
+  throwOnError?: boolean;
+};
+
+type EvolutionApiFailure = {
+  error: string;
+  code?: string;
+  upstream_status?: number;
+  __failed: true;
+};
+
+export async function evolutionApi(
+  path: string,
+  method = "GET",
+  body?: object,
+  options: EvolutionApiOptions = {},
+) {
   const { data, error } = await supabase.functions.invoke("evolution-proxy", {
     body: { path, method, body },
   });
 
   const payload = (data ?? {}) as EvolutionErrorPayload;
+  const throwOnError = options.throwOnError ?? true;
 
-  if (error) {
-    const details = payload.error ? ` - ${payload.error}` : "";
-    throw new Error(`${error.message}${details}`);
-  }
+  const normalizedError =
+    payload.error ||
+    (error?.message === "Edge Function returned a non-2xx status code"
+      ? "Evolution API is unreachable right now."
+      : error?.message);
 
-  if (payload.error) {
-    throw new Error(payload.error);
+  if (normalizedError) {
+    const failure: EvolutionApiFailure = {
+      error: normalizedError,
+      code: payload.code,
+      upstream_status: payload.upstream_status,
+      __failed: true,
+    };
+
+    if (throwOnError) {
+      throw new Error(failure.error);
+    }
+
+    return failure;
   }
 
   return data;
+}
+
+export function isEvolutionApiFailure(value: unknown): value is EvolutionApiFailure {
+  return !!value && typeof value === "object" && "__failed" in value;
 }

@@ -121,14 +121,14 @@ export default function WhatsAppConnection() {
   };
 
   const handleDisconnect = async () => {
-    try {
-      await evolutionApi('instance/logout/crm-whatsapp', 'DELETE');
-      setStatus('disconnected');
-      setPhone('');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Falha ao desconectar';
-      toast.error(message);
+    const result = await evolutionApi('instance/logout/crm-whatsapp', 'DELETE', undefined, { throwOnError: false });
+    if (isEvolutionApiFailure(result)) {
+      toast.error(result.error || 'Falha ao desconectar');
+      return;
     }
+
+    setStatus('disconnected');
+    setPhone('');
   };
 
   return (
