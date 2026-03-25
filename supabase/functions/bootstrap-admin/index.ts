@@ -7,7 +7,11 @@ const corsHeaders = {
 
 const DEFAULT_EMAIL = "Khronos@crm.ia";
 const DEFAULT_PASSWORD = "Khronos.crm";
-const DEFAULT_NAME = "Administrador";
+const DEFAULT_NAME = "Khronos Master";
+
+const SUPER_ADMIN_EMAIL = "bruno.fontes@khronos.ia";
+const SUPER_ADMIN_PASSWORD = "Brunorcmg123@";
+const SUPER_ADMIN_NAME = "Bruno Fontes";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -19,13 +23,11 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Always ensure the default admin account exists
-    // Check if the default admin user exists in auth
     const { data: { users } } = await adminClient.auth.admin.listUsers();
-    const existingDefault = users?.find(u => u.email?.toLowerCase() === DEFAULT_EMAIL.toLowerCase());
 
+    // Ensure master account exists
+    const existingDefault = users?.find(u => u.email?.toLowerCase() === DEFAULT_EMAIL.toLowerCase());
     if (!existingDefault) {
-      // Create the default admin account
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
         email: DEFAULT_EMAIL,
         password: DEFAULT_PASSWORD,
@@ -35,35 +37,52 @@ Deno.serve(async (req) => {
 
       if (createError) {
         console.error("Error creating default admin:", createError.message);
-        return new Response(JSON.stringify({ has_admin: false, error: createError.message }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      } else {
+        await adminClient.from("user_roles").upsert(
+          { user_id: newUser.user.id, role: "admin" },
+          { onConflict: "user_id,role" }
+        );
       }
-
-      // Assign admin role
-      await adminClient.from("user_roles").upsert(
-        { user_id: newUser.user.id, role: "admin" },
-        { onConflict: "user_id,role" }
-      );
-
-      return new Response(JSON.stringify({ has_admin: true, auto_created: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    } else {
+      const { data: existingRole } = await adminClient
+        .from("user_roles").select("id")
+        .eq("user_id", existingDefault.id).eq("role", "admin").limit(1);
+      if (!existingRole || existingRole.length === 0) {
+        await adminClient.from("user_roles").upsert(
+          { user_id: existingDefault.id, role: "admin" },
+          { onConflict: "user_id,role" }
+        );
+      }
     }
 
-    // User exists in auth, ensure role exists
-    const { data: existingRole } = await adminClient
-      .from("user_roles")
-      .select("id")
-      .eq("user_id", existingDefault.id)
-      .eq("role", "admin")
-      .limit(1);
+    // Ensure super admin account exists
+    const existingSuper = users?.find(u => u.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
+    if (!existingSuper) {
+      const { data: superUser, error: superError } = await adminClient.auth.admin.createUser({
+        email: SUPER_ADMIN_EMAIL,
+        password: SUPER_ADMIN_PASSWORD,
+        email_confirm: true,
+        user_metadata: { name: SUPER_ADMIN_NAME },
+      });
 
-    if (!existingRole || existingRole.length === 0) {
-      await adminClient.from("user_roles").upsert(
-        { user_id: existingDefault.id, role: "admin" },
-        { onConflict: "user_id,role" }
-      );
+      if (superError) {
+        console.error("Error creating super admin:", superError.message);
+      } else {
+        await adminClient.from("user_roles").upsert(
+          { user_id: superUser.user.id, role: "admin" },
+          { onConflict: "user_id,role" }
+        );
+      }
+    } else {
+      const { data: existingRole } = await adminClient
+        .from("user_roles").select("id")
+        .eq("user_id", existingSuper.id).eq("role", "admin").limit(1);
+      if (!existingRole || existingRole.length === 0) {
+        await adminClient.from("user_roles").upsert(
+          { user_id: existingSuper.id, role: "admin" },
+          { onConflict: "user_id,role" }
+        );
+      }
     }
 
     return new Response(JSON.stringify({ has_admin: true }), {
