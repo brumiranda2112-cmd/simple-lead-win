@@ -250,12 +250,7 @@ function CreateUserForm({ onSuccess, callAdmin }: { onSuccess: () => void; callA
       </div>
       <div className="space-y-2">
         <Label>Responsável CRM</Label>
-        <Select value={responsibleKey} onValueChange={setResponsibleKey}>
-          <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-          <SelectContent>
-            {RESPONSIBLE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <Input value={responsibleKey} onChange={e => setResponsibleKey(e.target.value)} placeholder="Nome ou identificador (opcional)" />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><UserPlus className="h-4 w-4 mr-2" /> Criar Usuário</>}
