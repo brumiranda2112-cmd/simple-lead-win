@@ -33,12 +33,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   user: { label: 'Usuário', color: 'bg-muted text-muted-foreground' },
 };
 
-const RESPONSIBLE_OPTIONS = [
-  { value: '', label: 'Nenhum' },
-  { value: 'bruno', label: 'Bruno' },
-  { value: 'gustavo', label: 'Gustavo' },
-  { value: 'ana_luiza', label: 'Ana Luiza' },
-];
+// Responsible options are now dynamic - derived from user profiles with responsible_key
 
 export default function Admin() {
   const { isAdmin } = useAuth();
@@ -164,7 +159,7 @@ export default function Admin() {
                             <Badge className={ROLE_LABELS[u.role]?.color || ''}>{ROLE_LABELS[u.role]?.label || u.role}</Badge>
                           ) : <Badge variant="outline">Sem função</Badge>}
                         </TableCell>
-                        <TableCell>{RESPONSIBLE_OPTIONS.find(r => r.value === u.responsible_key)?.label || '—'}</TableCell>
+                        <TableCell>{u.responsible_key || '—'}</TableCell>
                         <TableCell><Badge variant={u.is_active ? 'default' : 'secondary'}>{u.is_active ? 'Ativo' : 'Inativo'}</Badge></TableCell>
                         <TableCell className="text-right space-x-1">
                           <Button size="icon" variant="ghost" onClick={() => setEditUser(u)}><Pencil className="h-4 w-4" /></Button>
@@ -255,12 +250,7 @@ function CreateUserForm({ onSuccess, callAdmin }: { onSuccess: () => void; callA
       </div>
       <div className="space-y-2">
         <Label>Responsável CRM</Label>
-        <Select value={responsibleKey} onValueChange={setResponsibleKey}>
-          <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-          <SelectContent>
-            {RESPONSIBLE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <Input value={responsibleKey} onChange={e => setResponsibleKey(e.target.value)} placeholder="Nome ou identificador (opcional)" />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><UserPlus className="h-4 w-4 mr-2" /> Criar Usuário</>}
@@ -304,12 +294,7 @@ function EditUserForm({ user, onSuccess, callAdmin }: { user: UserWithRole; onSu
       </div>
       <div className="space-y-2">
         <Label>Responsável CRM</Label>
-        <Select value={responsibleKey} onValueChange={setResponsibleKey}>
-          <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-          <SelectContent>
-            {RESPONSIBLE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <Input value={responsibleKey} onChange={e => setResponsibleKey(e.target.value)} placeholder="Nome ou identificador (opcional)" />
       </div>
       <div className="flex items-center gap-2">
         <input type="checkbox" id="active" checked={isActive} onChange={e => setIsActive(e.target.checked)} className="rounded" />

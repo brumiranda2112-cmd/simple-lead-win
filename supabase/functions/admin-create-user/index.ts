@@ -5,9 +5,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const MASTER_EMAIL = "khronos@crm.ia";
-const SUPER_ADMIN_EMAIL = "bruno.fontes@khronos.ia";
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -32,19 +29,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const callerEmail = caller.email?.toLowerCase() || "";
-    const isMaster = callerEmail === MASTER_EMAIL;
-    const isSuperAdmin = callerEmail === SUPER_ADMIN_EMAIL;
-
-    // Check admin role (master and super admin bypass)
-    if (!isMaster && !isSuperAdmin) {
-      const { data: callerRoles } = await adminClient.from("user_roles").select("role").eq("user_id", caller.id);
-      const isAdmin = callerRoles?.some(r => r.role === "admin");
-      if (!isAdmin) {
-        return new Response(JSON.stringify({ error: "Admin access required" }), {
-          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    // Check admin role via database
+    const { data: callerRoles } = await adminClient.from("user_roles").select("role").eq("user_id", caller.id);
+    const isAdmin = callerRoles?.some(r => r.role === "admin");
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Get caller's tenant_id for propagation
@@ -55,14 +46,6 @@ Deno.serve(async (req) => {
 
     if (action === "create_user") {
       const { email, password, name, role, responsible_key, tenant_id: explicitTenantId } = body;
-
-      // Prevent duplicate emails
-      const emailLower = email.toLowerCase();
-      if (emailLower === MASTER_EMAIL || emailLower === SUPER_ADMIN_EMAIL) {
-        return new Response(JSON.stringify({ error: "Este email não pode ser utilizado" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
 
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
         email,
@@ -77,25 +60,12 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Determine tenant_id:
-      // - If master is creating (Setup page), the new user IS the tenant root → tenant_id = their own id
-      // - If a regular admin creates, propagate their tenant_id
-      // - If super admin passes explicit tenant_id, use that
-      let finalTenantId: string;
-      if (isMaster) {
-        finalTenantId = newUser.user.id; // New admin is their own tenant root
-      } else if (isSuperAdmin && explicitTenantId) {
-        finalTenantId = explicitTenantId;
-      } else {
-        finalTenantId = callerTenantId || caller.id;
-      }
+      const finalTenantId = explicitTenantId || callerTenantId || caller.id;
 
-      // Update profile with tenant_id and responsible_key
       const profileUpdate: Record<string, unknown> = { tenant_id: finalTenantId };
       if (responsible_key) profileUpdate.responsible_key = responsible_key;
       await adminClient.from("profiles").update(profileUpdate).eq("id", newUser.user.id);
 
-      // Assign role
       await adminClient.from("user_roles").insert({ user_id: newUser.user.id, role: role || "user" });
 
       return new Response(JSON.stringify({ user: newUser.user }), {
@@ -146,49 +116,6 @@ Deno.serve(async (req) => {
     if (action === "reset_password") {
       const { user_id, new_password } = body;
       await adminClient.auth.admin.updateUserById(user_id, { password: new_password });
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (action === "list_all_users") {
-      // Super admin only - list all users with tenant info
-      if (!isSuperAdmin) {
-        return new Response(JSON.stringify({ error: "Super admin access required" }), {
-          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const { data: profiles } = await adminClient.from("profiles").select("*");
-      const { data: roles } = await adminClient.from("user_roles").select("*");
-
-      const users = (profiles || []).map((p: any) => ({
-        id: p.id,
-        email: p.email,
-        name: p.name,
-        tenant_id: p.tenant_id,
-        is_active: p.is_active,
-        responsible_key: p.responsible_key,
-        role: roles?.find((r: any) => r.user_id === p.id)?.role || null,
-        created_at: p.created_at,
-      }));
-
-      return new Response(JSON.stringify({ users }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (action === "toggle_tenant") {
-      // Super admin only - activate/deactivate all users of a tenant
-      if (!isSuperAdmin) {
-        return new Response(JSON.stringify({ error: "Super admin access required" }), {
-          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const { tenant_id, is_active } = body;
-      await adminClient.from("profiles").update({ is_active }).eq("tenant_id", tenant_id);
-
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
