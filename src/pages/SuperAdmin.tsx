@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Shield, Users, ShieldAlert, Loader2, Building2, Trash2, KeyRound } from 'lucide-react';
+import { Shield, Users, ShieldAlert, Loader2, Building2, Trash2, KeyRound, Power, PowerOff } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,6 +87,20 @@ export default function SuperAdmin() {
     setResetLoading(false);
   };
 
+  const handleToggleTenant = async (tenantId: string, currentlyActive: boolean) => {
+    const newState = !currentlyActive;
+    try {
+      const { error } = await supabase.functions.invoke('admin-create-user', {
+        body: { action: 'toggle_tenant', tenant_id: tenantId, is_active: newState },
+      });
+      if (error) throw error;
+      toast.success(newState ? 'Tenant ativado' : 'Tenant desativado');
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
   if (!isSuperAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -112,7 +127,8 @@ export default function SuperAdmin() {
   // For each tenant group, find root admin (tenant_id === own id)
   const tenants = Object.entries(tenantGroups).map(([tenantId, members]) => {
     const root = members.find(m => m.id === tenantId) || members[0];
-    return { tenantId, rootName: root?.name || 'Desconhecido', rootEmail: root?.email || '', members };
+    const allActive = members.every(m => m.is_active);
+    return { tenantId, rootName: root?.name || 'Desconhecido', rootEmail: root?.email || '', members, allActive };
   });
 
   const totalClients = tenants.length;
@@ -169,14 +185,22 @@ export default function SuperAdmin() {
           </CardContent>
         </Card>
       ) : (
-        tenants.map(({ tenantId, rootName, rootEmail, members }) => (
-          <Card key={tenantId}>
+        tenants.map(({ tenantId, rootName, rootEmail, members, allActive }) => (
+          <Card key={tenantId} className={!allActive ? 'opacity-60' : ''}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
+              <CardTitle className="flex items-center gap-2 text-lg flex-wrap">
                 <Building2 className="h-5 w-5 text-primary" />
                 {rootName}
-                <Badge variant="outline" className="ml-2 text-xs">{rootEmail}</Badge>
+                <Badge variant="outline" className="text-xs">{rootEmail}</Badge>
+                <Badge variant={allActive ? 'default' : 'secondary'}>
+                  {allActive ? 'Ativo' : 'Inativo'}
+                </Badge>
                 <Badge className="ml-auto">{members.length} usuário(s)</Badge>
+                <Switch
+                  checked={allActive}
+                  onCheckedChange={() => handleToggleTenant(tenantId, allActive)}
+                  aria-label="Ativar/Desativar tenant"
+                />
               </CardTitle>
             </CardHeader>
             <CardContent>

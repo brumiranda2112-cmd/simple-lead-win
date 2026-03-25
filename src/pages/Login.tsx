@@ -34,7 +34,7 @@ export default function Login() {
     setLoading(true);
     const result = await login(email, password);
     if (result.error) {
-      setError('Email ou senha incorretos');
+      setError(result.error.includes('desativada') ? result.error : 'Email ou senha incorretos');
     }
     setLoading(false);
   };
