@@ -12,7 +12,7 @@ interface Props {
   onBack: () => void;
   onCreateLead: () => void;
   onCreateClient: () => void;
-  onFinish: () => void;
+  onDelete: () => void;
   onTransfer: () => void;
   onPriorityChange: (priority: string) => void;
   onMarkUnread: () => void;
