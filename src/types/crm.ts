@@ -160,11 +160,7 @@ export const LEAD_SOURCE_LABELS: Record<LeadSource, string> = {
   outro: 'Outro',
 };
 
-export const LEAD_RESPONSIBLE_LABELS: Record<LeadResponsible, string> = {
-  bruno: 'Bruno',
-  gustavo: 'Gustavo',
-  ana_luiza: 'Ana Luiza',
-};
+export const LEAD_RESPONSIBLE_LABELS: Record<string, string> = {};
 
 export const TASK_TYPE_LABELS: Record<TaskType, string> = {
   followup: 'Follow-up',

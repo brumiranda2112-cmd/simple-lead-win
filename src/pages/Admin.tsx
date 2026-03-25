@@ -33,12 +33,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   user: { label: 'Usuário', color: 'bg-muted text-muted-foreground' },
 };
 
-const RESPONSIBLE_OPTIONS = [
-  { value: '', label: 'Nenhum' },
-  { value: 'bruno', label: 'Bruno' },
-  { value: 'gustavo', label: 'Gustavo' },
-  { value: 'ana_luiza', label: 'Ana Luiza' },
-];
+// Responsible options are now dynamic - derived from user profiles with responsible_key
 
 export default function Admin() {
   const { isAdmin } = useAuth();
