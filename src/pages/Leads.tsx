@@ -115,9 +115,14 @@ export default function Leads() {
                             <Draggable key={lead.id} draggableId={lead.id} index={index}>
                               {(provided, snapshot) => (
                                 <Card ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                                  className={`p-3 cursor-pointer hover:border-primary/40 transition-all ${snapshot.isDragging ? 'shadow-lg ring-1 ring-primary/30' : ''}`}
+                                  className={`p-3 cursor-pointer hover:border-primary/40 transition-all group ${snapshot.isDragging ? 'shadow-lg ring-1 ring-primary/30' : ''}`}
                                   onClick={() => setDetailLead(lead)}>
-                                  <p className="font-medium text-sm truncate">{lead.name}</p>
+                                  <div className="flex items-center justify-between">
+                                    <p className="font-medium text-sm truncate flex-1">{lead.name}</p>
+                                    <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={e => { e.stopPropagation(); setEditLead(lead); setFormOpen(true); }}>
+                                      <Pencil className="w-3 h-3" />
+                                    </Button>
+                                  </div>
                                   <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                                     <Phone className="w-3 h-3" />{lead.phone}
                                     {lead.phone && (
