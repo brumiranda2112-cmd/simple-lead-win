@@ -18,12 +18,14 @@ import Agendar from "./pages/Agendar";
 import WhatsAppInbox from "./pages/WhatsAppInbox";
 import Admin from "./pages/Admin";
 import Setup from "./pages/Setup";
+import SuperAdmin from "./pages/SuperAdmin";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
 const MASTER_EMAIL = 'khronos@crm.ia';
+const SUPER_ADMIN_EMAIL = 'bruno.fontes@khronos.ia';
 
 function ProtectedRoutes() {
   const { user, isLoggedIn, isLoading } = useAuth();
@@ -34,9 +36,16 @@ function ProtectedRoutes() {
   );
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   
+  const email = user?.email?.toLowerCase();
+  
   // Master account always goes to setup page
-  if (user?.email?.toLowerCase() === MASTER_EMAIL) {
+  if (email === MASTER_EMAIL) {
     return <Navigate to="/setup" replace />;
+  }
+  
+  // Super admin always goes to super-admin panel
+  if (email === SUPER_ADMIN_EMAIL) {
+    return <Navigate to="/super-admin" replace />;
   }
   
   return (
@@ -65,13 +74,22 @@ function AppRoutes() {
     </div>
   );
   
-  const isMaster = user?.email?.toLowerCase() === MASTER_EMAIL;
+  const email = user?.email?.toLowerCase();
+  const isMaster = email === MASTER_EMAIL;
+  const isSuperAdmin = email === SUPER_ADMIN_EMAIL;
   
   return (
     <Routes>
       <Route path="/agendar" element={<Agendar />} />
       <Route path="/setup" element={isLoggedIn && isMaster ? <Setup /> : <Navigate to="/login" replace />} />
-      <Route path="/login" element={isLoggedIn ? (isMaster ? <Navigate to="/setup" replace /> : <Navigate to="/" replace />) : <Login />} />
+      <Route path="/super-admin" element={isLoggedIn && isSuperAdmin ? <SuperAdmin /> : <Navigate to="/login" replace />} />
+      <Route path="/login" element={
+        isLoggedIn 
+          ? (isMaster ? <Navigate to="/setup" replace /> 
+            : isSuperAdmin ? <Navigate to="/super-admin" replace />
+            : <Navigate to="/" replace />) 
+          : <Login />
+      } />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
   );
