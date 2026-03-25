@@ -1,6 +1,5 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import { CeoBot } from '@/components/CeoBot';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,7 +15,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
-      <CeoBot />
     </SidebarProvider>
   );
 }
