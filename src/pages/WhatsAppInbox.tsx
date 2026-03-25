@@ -127,6 +127,18 @@ export default function WhatsAppInbox() {
     loadConversations();
   };
 
+  const handleDelete = async () => {
+    if (!selectedConv) return;
+    const confirmed = window.confirm('Tem certeza que deseja excluir esta conversa e todas as mensagens?');
+    if (!confirmed) return;
+    await supabase.from('whatsapp_messages').delete().eq('conversation_id', selectedConv.id);
+    await supabase.from('whatsapp_conversations').delete().eq('id', selectedConv.id);
+    toast.success('Conversa excluída');
+    setSelectedConv(null);
+    setMobileShowChat(false);
+    loadConversations();
+  };
+
   const handlePriorityChange = async (priority: string) => {
     if (!selectedConv) return;
     await supabase.from('whatsapp_conversations').update({ priority } as any).eq('id', selectedConv.id);
