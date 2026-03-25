@@ -66,8 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(sess?.user ?? null);
 
       if (sess?.user) {
+        setStorageUserId(sess.user.id);
         setTimeout(() => fetchUserData(sess.user.id), 0);
       } else {
+        setStorageUserId(null);
         setProfile(null);
         setRole(null);
         setPermissions([]);
