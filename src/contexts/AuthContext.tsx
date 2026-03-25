@@ -91,18 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchUserData]);
 
   const login = useCallback(async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
-
-    // Check if user is active
-    if (data.user) {
-      const { data: prof } = await supabase.from('profiles').select('is_active').eq('id', data.user.id).single();
-      if (prof && !prof.is_active) {
-        await supabase.auth.signOut();
-        return { error: 'Sua conta está desativada. Contate o administrador.' };
-      }
-    }
-
     return { error: null };
   }, []);
 
