@@ -5,13 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const DEFAULT_EMAIL = "Khronos@crm.ia";
-const DEFAULT_PASSWORD = "Khronos.crm";
-const DEFAULT_NAME = "Khronos Master";
-
-const SUPER_ADMIN_EMAIL = "bruno.fontes@khronos.ia";
-const SUPER_ADMIN_PASSWORD = "Brunorcmg123@";
-const SUPER_ADMIN_NAME = "Bruno Fontes";
+const DEFAULT_EMAIL = "adm@khronos.com";
+const DEFAULT_PASSWORD = "123456";
+const DEFAULT_NAME = "Administrador";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -25,7 +21,6 @@ Deno.serve(async (req) => {
 
     const { data: { users } } = await adminClient.auth.admin.listUsers();
 
-    // Ensure master account exists
     const existingDefault = users?.find(u => u.email?.toLowerCase() === DEFAULT_EMAIL.toLowerCase());
     if (!existingDefault) {
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
@@ -50,36 +45,6 @@ Deno.serve(async (req) => {
       if (!existingRole || existingRole.length === 0) {
         await adminClient.from("user_roles").upsert(
           { user_id: existingDefault.id, role: "admin" },
-          { onConflict: "user_id,role" }
-        );
-      }
-    }
-
-    // Ensure super admin account exists
-    const existingSuper = users?.find(u => u.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase());
-    if (!existingSuper) {
-      const { data: superUser, error: superError } = await adminClient.auth.admin.createUser({
-        email: SUPER_ADMIN_EMAIL,
-        password: SUPER_ADMIN_PASSWORD,
-        email_confirm: true,
-        user_metadata: { name: SUPER_ADMIN_NAME },
-      });
-
-      if (superError) {
-        console.error("Error creating super admin:", superError.message);
-      } else {
-        await adminClient.from("user_roles").upsert(
-          { user_id: superUser.user.id, role: "admin" },
-          { onConflict: "user_id,role" }
-        );
-      }
-    } else {
-      const { data: existingRole } = await adminClient
-        .from("user_roles").select("id")
-        .eq("user_id", existingSuper.id).eq("role", "admin").limit(1);
-      if (!existingRole || existingRole.length === 0) {
-        await adminClient.from("user_roles").upsert(
-          { user_id: existingSuper.id, role: "admin" },
           { onConflict: "user_id,role" }
         );
       }
