@@ -100,6 +100,7 @@ export default function Admin() {
       <Tabs defaultValue="users">
         <TabsList>
           <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="branding">Personalização</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="quick-replies">Mensagens Rápidas</TabsTrigger>
           <TabsTrigger value="labels">Etiquetas</TabsTrigger>
