@@ -17,6 +17,7 @@ import Agendamentos from "./pages/Agendamentos";
 import Agendar from "./pages/Agendar";
 import WhatsAppInbox from "./pages/WhatsAppInbox";
 import Admin from "./pages/Admin";
+import Setup from "./pages/Setup";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -58,6 +59,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/agendar" element={<Agendar />} />
+      <Route path="/setup" element={isLoggedIn ? <Navigate to="/" replace /> : <Setup />} />
       <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
