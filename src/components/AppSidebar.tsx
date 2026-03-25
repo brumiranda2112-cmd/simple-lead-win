@@ -35,6 +35,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const { profile, isAdmin, logout } = useAuth();
+  const { branding } = useBranding();
   const pendingCount = getOverdueTasks().length + getTodayTasks().length;
   const [whatsappUnread, setWhatsappUnread] = useState(0);
   const visibleItems = navItems.filter(item => !('adminOnly' in item) || isAdmin);
