@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { evolutionApi } from '@/lib/evolutionProxy';
 import { Loader2, Wifi, WifiOff, QrCode, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function WhatsAppConnection() {
   const [status, setStatus] = useState<'loading' | 'connected' | 'disconnected'>('loading');
@@ -111,9 +112,14 @@ export default function WhatsAppConnection() {
   };
 
   const handleDisconnect = async () => {
-    await evolutionApi('instance/logout/crm-whatsapp', 'DELETE');
-    setStatus('disconnected');
-    setPhone('');
+    try {
+      await evolutionApi('instance/logout/crm-whatsapp', 'DELETE');
+      setStatus('disconnected');
+      setPhone('');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Falha ao desconectar';
+      toast.error(message);
+    }
   };
 
   return (
