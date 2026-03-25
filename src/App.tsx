@@ -23,14 +23,22 @@ import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
+const MASTER_EMAIL = 'khronos@crm.ia';
+
 function ProtectedRoutes() {
-  const { isLoggedIn, isLoading } = useAuth();
+  const { user, isLoggedIn, isLoading } = useAuth();
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
   if (!isLoggedIn) return <Navigate to="/login" replace />;
+  
+  // Master account always goes to setup page
+  if (user?.email?.toLowerCase() === MASTER_EMAIL) {
+    return <Navigate to="/setup" replace />;
+  }
+  
   return (
     <AppLayout>
       <TaskAlertModal />
