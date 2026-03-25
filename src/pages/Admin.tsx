@@ -40,10 +40,8 @@ const RESPONSIBLE_OPTIONS = [
   { value: 'ana_luiza', label: 'Ana Luiza' },
 ];
 
-const SYSTEM_EMAILS = ['khronos@crm.ia', 'bruno.fontes@khronos.ia'];
-
 export default function Admin() {
-  const { isAdmin, user: currentUser } = useAuth();
+  const { isAdmin } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -55,23 +53,15 @@ export default function Admin() {
     const { data: profiles } = await supabase.from('profiles').select('*');
     const { data: roles } = await supabase.from('user_roles').select('*');
     if (profiles) {
-      // Get current user's tenant_id
-      const currentProfile = profiles.find((p: any) => p.id === currentUser?.id);
-      const myTenantId = currentProfile?.tenant_id || currentUser?.id;
-
-      const filtered = profiles
-        .filter((p: any) => !SYSTEM_EMAILS.includes(p.email?.toLowerCase()))
-        .filter((p: any) => p.tenant_id === myTenantId)
-        .map((p: any) => ({
-          id: p.id, email: p.email, name: p.name,
-          responsible_key: p.responsible_key, is_active: p.is_active,
-          role: roles?.find((r: any) => r.user_id === p.id)?.role || null,
-          created_at: p.created_at,
-        }));
-      setUsers(filtered);
+      setUsers(profiles.map((p: any) => ({
+        id: p.id, email: p.email, name: p.name,
+        responsible_key: p.responsible_key, is_active: p.is_active,
+        role: roles?.find((r: any) => r.user_id === p.id)?.role || null,
+        created_at: p.created_at,
+      })));
     }
     setLoading(false);
-  }, [currentUser?.id]);
+  }, []);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 

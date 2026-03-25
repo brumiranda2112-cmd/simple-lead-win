@@ -17,37 +17,20 @@ import Agendamentos from "./pages/Agendamentos";
 import Agendar from "./pages/Agendar";
 import WhatsAppInbox from "./pages/WhatsAppInbox";
 import Admin from "./pages/Admin";
-import Setup from "./pages/Setup";
-import SuperAdmin from "./pages/SuperAdmin";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
-const MASTER_EMAIL = 'khronos@crm.ia';
-const SUPER_ADMIN_EMAIL = 'bruno.fontes@khronos.ia';
-
 function ProtectedRoutes() {
-  const { user, isLoggedIn, isLoading } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
   if (!isLoggedIn) return <Navigate to="/login" replace />;
-  
-  const email = user?.email?.toLowerCase();
-  
-  // Master account always goes to setup page
-  if (email === MASTER_EMAIL) {
-    return <Navigate to="/setup" replace />;
-  }
-  
-  // Super admin always goes to super-admin panel
-  if (email === SUPER_ADMIN_EMAIL) {
-    return <Navigate to="/super-admin" replace />;
-  }
-  
+
   return (
     <AppLayout>
       <TaskAlertModal />
@@ -67,29 +50,17 @@ function ProtectedRoutes() {
 }
 
 function AppRoutes() {
-  const { user, isLoggedIn, isLoading } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
-  
-  const email = user?.email?.toLowerCase();
-  const isMaster = email === MASTER_EMAIL;
-  const isSuperAdmin = email === SUPER_ADMIN_EMAIL;
-  
+
   return (
     <Routes>
       <Route path="/agendar" element={<Agendar />} />
-      <Route path="/setup" element={isLoggedIn && isMaster ? <Setup /> : <Navigate to="/login" replace />} />
-      <Route path="/super-admin" element={isLoggedIn && isSuperAdmin ? <SuperAdmin /> : <Navigate to="/login" replace />} />
-      <Route path="/login" element={
-        isLoggedIn 
-          ? (isMaster ? <Navigate to="/setup" replace /> 
-            : isSuperAdmin ? <Navigate to="/super-admin" replace />
-            : <Navigate to="/" replace />) 
-          : <Login />
-      } />
+      <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
   );

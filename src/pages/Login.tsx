@@ -21,11 +21,8 @@ export default function Login() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Ensure default admin exists on first access
-    supabase.functions.invoke('bootstrap-admin', { method: 'GET' })
-      .catch(() => {})
-      .finally(() => setChecking(false));
-  }, [navigate]);
+    setChecking(false);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +31,7 @@ export default function Login() {
     setLoading(true);
     const result = await login(email, password);
     if (result.error) {
-      setError(result.error.includes('desativada') ? result.error : 'Email ou senha incorretos');
+      setError('Email ou senha incorretos');
     }
     setLoading(false);
   };
