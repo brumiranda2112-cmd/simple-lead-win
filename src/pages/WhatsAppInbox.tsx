@@ -139,6 +139,19 @@ export default function WhatsAppInbox() {
     loadConversations();
   };
 
+  const handleDeleteMultiple = async (ids: string[]) => {
+    for (const id of ids) {
+      await supabase.from('whatsapp_messages').delete().eq('conversation_id', id);
+      await supabase.from('whatsapp_conversations').delete().eq('id', id);
+    }
+    if (selectedConv && ids.includes(selectedConv.id)) {
+      setSelectedConv(null);
+      setMobileShowChat(false);
+    }
+    toast.success(`${ids.length} conversa(s) excluída(s)`);
+    loadConversations();
+  };
+
   const handlePriorityChange = async (priority: string) => {
     if (!selectedConv) return;
     await supabase.from('whatsapp_conversations').update({ priority } as any).eq('id', selectedConv.id);
