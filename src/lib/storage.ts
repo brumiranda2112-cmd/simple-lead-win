@@ -1,6 +1,17 @@
 import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction, LeadType } from '@/types/crm';
 
-const KEYS = {
+let _userId: string | null = null;
+
+export function setStorageUserId(userId: string | null) {
+  _userId = userId;
+}
+
+function prefixedKey(key: string): string {
+  if (!_userId) return key;
+  return `${_userId}:${key}`;
+}
+
+const BASE_KEYS = {
   USER: 'crm_user',
   AUTH_TOKEN: 'crm_auth_token',
   LEADS: 'crm_leads',
@@ -17,28 +28,28 @@ function now(): string {
   return new Date().toISOString();
 }
 
-function get<T>(key: string, fallback: T): T {
+function get<T>(baseKey: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(prefixedKey(baseKey));
     return raw ? JSON.parse(raw) : fallback;
   } catch {
     return fallback;
   }
 }
 
-function set(key: string, value: unknown) {
-  localStorage.setItem(key, JSON.stringify(value));
+function set(baseKey: string, value: unknown) {
+  localStorage.setItem(prefixedKey(baseKey), JSON.stringify(value));
 }
 
 // ===== AUTH =====
 export function getUser(): CrmUser | null {
-  return get<CrmUser | null>(KEYS.USER, null);
+  return get<CrmUser | null>(BASE_KEYS.USER, null);
 }
 
 export function registerUser(email: string, name: string, password: string): CrmUser {
   const user: CrmUser = { email, name, passwordHash: btoa(password) };
-  set(KEYS.USER, user);
-  set(KEYS.AUTH_TOKEN, uid());
+  set(BASE_KEYS.USER, user);
+  set(BASE_KEYS.AUTH_TOKEN, uid());
   return user;
 }
 
@@ -46,25 +57,24 @@ export function loginUser(email: string, password: string): CrmUser | null {
   const user = getUser();
   if (!user) return null;
   if (user.email === email && atob(user.passwordHash) === password) {
-    set(KEYS.AUTH_TOKEN, uid());
+    set(BASE_KEYS.AUTH_TOKEN, uid());
     return user;
   }
   return null;
 }
 
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem(KEYS.AUTH_TOKEN);
+  return !!localStorage.getItem(prefixedKey(BASE_KEYS.AUTH_TOKEN));
 }
 
 export function logout() {
-  localStorage.removeItem(KEYS.AUTH_TOKEN);
+  localStorage.removeItem(prefixedKey(BASE_KEYS.AUTH_TOKEN));
 }
 
 // ===== LEADS =====
 function migrateLeads(leads: Lead[]): Lead[] {
   return leads.map(l => {
     if (!l.leadType) {
-      // Existing leads without leadType: check status to determine type
       const clientStatuses = ['cliente_novo', 'mvp', 'call_apresentacao', 'aprovacao', 'desenvolvimento_final', 'entrega_cliente', 'ajustes', 'finalizado', 'diagnostico', 'call_cliente', 'mvp_sistema', 'aprovacao_cliente', 'contrato_fechado', 'desenvolvimento', 'periodo_ajustes'];
       return { ...l, leadType: clientStatuses.includes(l.status) ? 'cliente' as LeadType : 'lead' as LeadType };
     }
@@ -73,7 +83,7 @@ function migrateLeads(leads: Lead[]): Lead[] {
 }
 
 export function getLeads(): Lead[] {
-  return migrateLeads(get<Lead[]>(KEYS.LEADS, []));
+  return migrateLeads(get<Lead[]>(BASE_KEYS.LEADS, []));
 }
 
 export function getLeadsByType(type: LeadType): Lead[] {
@@ -88,7 +98,7 @@ export function createLead(data: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>): 
   const leads = getLeads();
   const lead: Lead = { ...data, id: uid(), createdAt: now(), updatedAt: now() };
   leads.push(lead);
-  set(KEYS.LEADS, leads);
+  set(BASE_KEYS.LEADS, leads);
   addActivity(lead.id, 'lead_created', `Lead "${lead.name}" criado`);
   return lead;
 }
@@ -98,17 +108,16 @@ export function updateLead(id: string, data: Partial<Lead>): Lead | null {
   const idx = leads.findIndex(l => l.id === id);
   if (idx === -1) return null;
   leads[idx] = { ...leads[idx], ...data, updatedAt: now() };
-  set(KEYS.LEADS, leads);
+  set(BASE_KEYS.LEADS, leads);
   addActivity(id, 'lead_updated', `Lead "${leads[idx].name}" atualizado`);
   return leads[idx];
 }
 
 export function deleteLead(id: string) {
   const leads = getLeads().filter(l => l.id !== id);
-  set(KEYS.LEADS, leads);
-  // Also delete related tasks and activities
-  set(KEYS.TASKS, getTasks().filter(t => t.leadId !== id));
-  set(KEYS.ACTIVITIES, getActivities().filter(a => a.leadId !== id));
+  set(BASE_KEYS.LEADS, leads);
+  set(BASE_KEYS.TASKS, getTasks().filter(t => t.leadId !== id));
+  set(BASE_KEYS.ACTIVITIES, getActivities().filter(a => a.leadId !== id));
 }
 
 export function moveLeadStatus(id: string, newStatus: LeadStatus, reason?: string): Lead | null {
@@ -122,25 +131,24 @@ export function moveLeadStatus(id: string, newStatus: LeadStatus, reason?: strin
     updatedAt: now(),
     wonLostReason: reason || leads[idx].wonLostReason,
   };
-  set(KEYS.LEADS, leads);
+  set(BASE_KEYS.LEADS, leads);
   addActivity(id, 'status_changed', `Status mudou de "${oldStatus}" para "${newStatus}"`, { oldStatus, newStatus, reason });
   return leads[idx];
 }
 
-// Convert lead to client
 export function convertLeadToClient(id: string): Lead | null {
   const leads = getLeads();
   const idx = leads.findIndex(l => l.id === id);
   if (idx === -1) return null;
   leads[idx] = { ...leads[idx], leadType: 'cliente', status: 'cliente_novo', updatedAt: now() };
-  set(KEYS.LEADS, leads);
+  set(BASE_KEYS.LEADS, leads);
   addActivity(id, 'status_changed', `Lead convertido em Cliente`);
   return leads[idx];
 }
 
 // ===== TASKS =====
 export function getTasks(): Task[] {
-  return get<Task[]>(KEYS.TASKS, []);
+  return get<Task[]>(BASE_KEYS.TASKS, []);
 }
 
 export function getTask(id: string): Task | undefined {
@@ -151,7 +159,7 @@ export function createTask(data: Omit<Task, 'id' | 'completed' | 'completedAt' |
   const tasks = getTasks();
   const task: Task = { ...data, id: uid(), completed: false, completedAt: null, createdAt: now() };
   tasks.push(task);
-  set(KEYS.TASKS, tasks);
+  set(BASE_KEYS.TASKS, tasks);
   addActivity(data.leadId, 'task_created', `Tarefa "${task.title}" criada`);
   return task;
 }
@@ -161,7 +169,7 @@ export function updateTask(id: string, data: Partial<Task>): Task | null {
   const idx = tasks.findIndex(t => t.id === id);
   if (idx === -1) return null;
   tasks[idx] = { ...tasks[idx], ...data };
-  set(KEYS.TASKS, tasks);
+  set(BASE_KEYS.TASKS, tasks);
   return tasks[idx];
 }
 
@@ -170,13 +178,13 @@ export function completeTask(id: string): Task | null {
   const idx = tasks.findIndex(t => t.id === id);
   if (idx === -1) return null;
   tasks[idx] = { ...tasks[idx], completed: true, completedAt: now() };
-  set(KEYS.TASKS, tasks);
+  set(BASE_KEYS.TASKS, tasks);
   addActivity(tasks[idx].leadId, 'task_completed', `Tarefa "${tasks[idx].title}" concluída`);
   return tasks[idx];
 }
 
 export function deleteTask(id: string) {
-  set(KEYS.TASKS, getTasks().filter(t => t.id !== id));
+  set(BASE_KEYS.TASKS, getTasks().filter(t => t.id !== id));
 }
 
 export function getOverdueTasks(): Task[] {
@@ -191,7 +199,7 @@ export function getTodayTasks(): Task[] {
 
 // ===== ACTIVITIES =====
 export function getActivities(): Activity[] {
-  return get<Activity[]>(KEYS.ACTIVITIES, []);
+  return get<Activity[]>(BASE_KEYS.ACTIVITIES, []);
 }
 
 export function getLeadActivities(leadId: string): Activity[] {
@@ -201,19 +209,19 @@ export function getLeadActivities(leadId: string): Activity[] {
 function addActivity(leadId: string, type: Activity['type'], description: string, metadata?: Record<string, unknown>) {
   const activities = getActivities();
   activities.push({ id: uid(), leadId, type, description, metadata, createdAt: now() });
-  set(KEYS.ACTIVITIES, activities);
+  set(BASE_KEYS.ACTIVITIES, activities);
 }
 
 // ===== TRANSACTIONS =====
 export function getTransactions(): Transaction[] {
-  return get<Transaction[]>(KEYS.TRANSACTIONS, []);
+  return get<Transaction[]>(BASE_KEYS.TRANSACTIONS, []);
 }
 
 export function createTransaction(data: Omit<Transaction, 'id' | 'createdAt'>): Transaction {
   const txns = getTransactions();
   const txn: Transaction = { ...data, id: uid(), createdAt: now() };
   txns.push(txn);
-  set(KEYS.TRANSACTIONS, txns);
+  set(BASE_KEYS.TRANSACTIONS, txns);
   return txn;
 }
 
@@ -222,15 +230,14 @@ export function updateTransaction(id: string, data: Partial<Transaction>): Trans
   const idx = txns.findIndex(t => t.id === id);
   if (idx === -1) return null;
   txns[idx] = { ...txns[idx], ...data };
-  set(KEYS.TRANSACTIONS, txns);
+  set(BASE_KEYS.TRANSACTIONS, txns);
   return txns[idx];
 }
 
 export function deleteTransaction(id: string) {
-  set(KEYS.TRANSACTIONS, getTransactions().filter(t => t.id !== id));
+  set(BASE_KEYS.TRANSACTIONS, getTransactions().filter(t => t.id !== id));
 }
 
-// Auto-generate revenue from leads with contrato_fechado status
 export function syncRevenueFromLeads() {
   const leads = getLeads();
   const txns = getTransactions();
