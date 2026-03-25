@@ -15,6 +15,7 @@ import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldA
 import WhatsAppConnection from '@/components/admin/WhatsAppConnection';
 import QuickRepliesManager from '@/components/admin/QuickRepliesManager';
 import LabelsManager from '@/components/admin/LabelsManager';
+import BrandingManager from '@/components/admin/BrandingManager';
 
 interface UserWithRole {
   id: string;
