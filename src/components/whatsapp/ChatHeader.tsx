@@ -20,7 +20,7 @@ interface Props {
   onLabelsUpdate: (labels: string[]) => void;
 }
 
-export default function ChatHeader({ conversation, profiles, onBack, onCreateLead, onCreateClient, onFinish, onTransfer, onPriorityChange, onMarkUnread, onSchedule, onLabelsUpdate }: Props) {
+export default function ChatHeader({ conversation, profiles, onBack, onCreateLead, onCreateClient, onFinish, onDelete, onTransfer, onPriorityChange, onMarkUnread, onSchedule, onLabelsUpdate }: Props) {
   const assignedProfile = profiles.find(p => p.id === conversation.assigned_to);
 
   return (
