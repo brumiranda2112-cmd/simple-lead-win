@@ -58,17 +58,20 @@ function ProtectedRoutes() {
 }
 
 function AppRoutes() {
-  const { isLoggedIn, isLoading } = useAuth();
+  const { user, isLoggedIn, isLoading } = useAuth();
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
+  
+  const isMaster = user?.email?.toLowerCase() === MASTER_EMAIL;
+  
   return (
     <Routes>
       <Route path="/agendar" element={<Agendar />} />
-      <Route path="/setup" element={isLoggedIn ? <Navigate to="/" replace /> : <Setup />} />
-      <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/setup" element={isLoggedIn && isMaster ? <Setup /> : <Navigate to="/login" replace />} />
+      <Route path="/login" element={isLoggedIn ? (isMaster ? <Navigate to="/setup" replace /> : <Navigate to="/" replace />) : <Login />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
   );
