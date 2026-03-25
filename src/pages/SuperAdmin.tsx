@@ -87,6 +87,20 @@ export default function SuperAdmin() {
     setResetLoading(false);
   };
 
+  const handleToggleTenant = async (tenantId: string, currentlyActive: boolean) => {
+    const newState = !currentlyActive;
+    try {
+      const { error } = await supabase.functions.invoke('admin-create-user', {
+        body: { action: 'toggle_tenant', tenant_id: tenantId, is_active: newState },
+      });
+      if (error) throw error;
+      toast.success(newState ? 'Tenant ativado' : 'Tenant desativado');
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
   if (!isSuperAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
