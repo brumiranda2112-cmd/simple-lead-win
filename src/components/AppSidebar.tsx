@@ -5,6 +5,7 @@ import { getOverdueTasks, getTodayTasks } from '@/lib/storage';
 import { getTotalUnread } from '@/lib/whatsappService';
 import iconKhronos from '@/assets/icon-khronos.png';
 import { useEffect, useState } from 'react';
+import { useBranding } from '@/contexts/BrandingContext';
 import {
   Sidebar,
   SidebarContent,
