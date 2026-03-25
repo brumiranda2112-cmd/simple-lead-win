@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ArrowLeft, UserPlus, PhoneOff, ArrowRightLeft, MoreVertical, BellOff, Ban, Clock, Kanban } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ArrowLeft, UserPlus, PhoneOff, ArrowRightLeft, MoreVertical, BellOff, Ban, Clock, Kanban, Trash2 } from 'lucide-react';
 import type { Conversation, Profile } from './types';
 import LabelsPicker from './LabelsPicker';
 
@@ -13,6 +13,7 @@ interface Props {
   onCreateLead: () => void;
   onCreateClient: () => void;
   onFinish: () => void;
+  onDelete: () => void;
   onTransfer: () => void;
   onPriorityChange: (priority: string) => void;
   onMarkUnread: () => void;
@@ -20,7 +21,7 @@ interface Props {
   onLabelsUpdate: (labels: string[]) => void;
 }
 
-export default function ChatHeader({ conversation, profiles, onBack, onCreateLead, onCreateClient, onFinish, onTransfer, onPriorityChange, onMarkUnread, onSchedule, onLabelsUpdate }: Props) {
+export default function ChatHeader({ conversation, profiles, onBack, onCreateLead, onCreateClient, onFinish, onDelete, onTransfer, onPriorityChange, onMarkUnread, onSchedule, onLabelsUpdate }: Props) {
   const assignedProfile = profiles.find(p => p.id === conversation.assigned_to);
 
   return (
@@ -101,6 +102,10 @@ export default function ChatHeader({ conversation, profiles, onBack, onCreateLea
             </DropdownMenuItem>
             <DropdownMenuItem className="text-destructive">
               <Ban className="h-4 w-4 mr-2" /> Bloquear contato
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+              <Trash2 className="h-4 w-4 mr-2" /> Excluir conversa
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
