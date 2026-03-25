@@ -282,6 +282,7 @@ export default function WhatsAppInbox() {
             profiles={profiles}
             onSelect={selectConversation}
             onNewConversation={() => setShowNewConvModal(true)}
+            onDeleteMultiple={handleDeleteMultiple}
           />
         </div>
         <div className={`flex-1 ${!mobileShowChat ? 'hidden md:flex md:flex-col' : 'flex flex-col'}`}>
