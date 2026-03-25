@@ -19,89 +19,54 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // GET = check if default admin exists, auto-create if not
-    if (req.method === "GET") {
-      const { data: existingAdmins } = await adminClient
-        .from("user_roles")
-        .select("id")
-        .eq("role", "admin")
-        .limit(1);
+    // Always ensure the default admin account exists
+    // Check if the default admin user exists in auth
+    const { data: { users } } = await adminClient.auth.admin.listUsers();
+    const existingDefault = users?.find(u => u.email?.toLowerCase() === DEFAULT_EMAIL.toLowerCase());
 
-      const hasAdmin = !!(existingAdmins && existingAdmins.length > 0);
+    if (!existingDefault) {
+      // Create the default admin account
+      const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+        email: DEFAULT_EMAIL,
+        password: DEFAULT_PASSWORD,
+        email_confirm: true,
+        user_metadata: { name: DEFAULT_NAME },
+      });
 
-      if (!hasAdmin) {
-        // Auto-create the default admin account
-        const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-          email: DEFAULT_EMAIL,
-          password: DEFAULT_PASSWORD,
-          email_confirm: true,
-          user_metadata: { name: DEFAULT_NAME },
-        });
-
-        if (createError) {
-          // User might already exist in auth but not in user_roles
-          const { data: { users } } = await adminClient.auth.admin.listUsers();
-          const existing = users?.find(u => u.email === DEFAULT_EMAIL);
-          if (existing) {
-            // Ensure role exists
-            await adminClient.from("user_roles").upsert(
-              { user_id: existing.id, role: "admin" },
-              { onConflict: "user_id,role" }
-            );
-            return new Response(JSON.stringify({ has_admin: true, auto_created: true }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-          return new Response(JSON.stringify({ has_admin: false, error: createError.message }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        await adminClient.from("user_roles").insert({ user_id: newUser.user.id, role: "admin" });
-
-        return new Response(JSON.stringify({ has_admin: true, auto_created: true }), {
+      if (createError) {
+        console.error("Error creating default admin:", createError.message);
+        return new Response(JSON.stringify({ has_admin: false, error: createError.message }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({ has_admin: true }), {
+      // Assign admin role
+      await adminClient.from("user_roles").upsert(
+        { user_id: newUser.user.id, role: "admin" },
+        { onConflict: "user_id,role" }
+      );
+
+      return new Response(JSON.stringify({ has_admin: true, auto_created: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // POST = manual admin creation (kept for setup page compatibility)
-    const { data: existingAdmins } = await adminClient
+    // User exists in auth, ensure role exists
+    const { data: existingRole } = await adminClient
       .from("user_roles")
       .select("id")
+      .eq("user_id", existingDefault.id)
       .eq("role", "admin")
       .limit(1);
 
-    if (existingAdmins && existingAdmins.length > 0) {
-      return new Response(JSON.stringify({ error: "Um administrador já existe. Use o painel admin para criar mais usuários." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!existingRole || existingRole.length === 0) {
+      await adminClient.from("user_roles").upsert(
+        { user_id: existingDefault.id, role: "admin" },
+        { onConflict: "user_id,role" }
+      );
     }
 
-    const { email, password, name } = await req.json();
-    if (!email || !password || !name) {
-      return new Response(JSON.stringify({ error: "Email, senha e nome são obrigatórios" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email, password, email_confirm: true, user_metadata: { name },
-    });
-
-    if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    await adminClient.from("user_roles").insert({ user_id: newUser.user.id, role: "admin" });
-
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ has_admin: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
