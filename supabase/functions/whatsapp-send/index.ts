@@ -30,7 +30,10 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json();
-    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL") || "http://191.252.182.221:8080";
+    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL") || "";
+    if (!EVOLUTION_API_URL) {
+      return new Response(JSON.stringify({ error: "EVOLUTION_API_URL is not configured" }), { status: 500, headers: corsHeaders });
+    }
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY")!;
     const INSTANCE = "crm-whatsapp";
 

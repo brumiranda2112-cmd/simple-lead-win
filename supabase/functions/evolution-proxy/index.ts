@@ -12,7 +12,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const EVOLUTION_URL = (Deno.env.get("EVOLUTION_API_URL") || "http://191.252.182.221:8080").replace(/\/+$/, "");
+    const EVOLUTION_URL = (Deno.env.get("EVOLUTION_API_URL") || "").replace(/\/+$/, "");
+    if (!EVOLUTION_URL) {
+      return new Response(JSON.stringify({ error: "EVOLUTION_API_URL is not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const API_KEY = Deno.env.get("EVOLUTION_API_KEY");
 
     if (!API_KEY) {
