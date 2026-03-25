@@ -81,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
+        setStorageUserId(sess.user.id);
         fetchUserData(sess.user.id);
       }
       setIsLoading(false);
