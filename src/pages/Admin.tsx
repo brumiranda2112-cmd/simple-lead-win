@@ -43,7 +43,7 @@ const RESPONSIBLE_OPTIONS = [
 const SYSTEM_EMAILS = ['khronos@crm.ia', 'bruno.fontes@khronos.ia'];
 
 export default function Admin() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
