@@ -28,7 +28,7 @@ const navItems = [
   { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
   { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
   { title: 'Agendamentos', url: '/agendamentos', icon: CalendarDays },
-  { title: 'Admin', url: '/admin', icon: Shield, adminOnly: true },
+  { title: 'Admin', url: '/admin', icon: Shield },
 ];
 
 export function AppSidebar() {
