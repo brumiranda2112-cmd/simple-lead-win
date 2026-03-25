@@ -185,14 +185,22 @@ export default function SuperAdmin() {
           </CardContent>
         </Card>
       ) : (
-        tenants.map(({ tenantId, rootName, rootEmail, members }) => (
-          <Card key={tenantId}>
+        tenants.map(({ tenantId, rootName, rootEmail, members, allActive }) => (
+          <Card key={tenantId} className={!allActive ? 'opacity-60' : ''}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
+              <CardTitle className="flex items-center gap-2 text-lg flex-wrap">
                 <Building2 className="h-5 w-5 text-primary" />
                 {rootName}
-                <Badge variant="outline" className="ml-2 text-xs">{rootEmail}</Badge>
+                <Badge variant="outline" className="text-xs">{rootEmail}</Badge>
+                <Badge variant={allActive ? 'default' : 'secondary'}>
+                  {allActive ? 'Ativo' : 'Inativo'}
+                </Badge>
                 <Badge className="ml-auto">{members.length} usuário(s)</Badge>
+                <Switch
+                  checked={allActive}
+                  onCheckedChange={() => handleToggleTenant(tenantId, allActive)}
+                  aria-label="Ativar/Desativar tenant"
+                />
               </CardTitle>
             </CardHeader>
             <CardContent>
