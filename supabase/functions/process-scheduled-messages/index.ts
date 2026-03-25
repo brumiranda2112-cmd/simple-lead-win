@@ -17,7 +17,10 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL") || "http://191.252.182.221:8080";
+    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL") || "";
+    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
+      return new Response(JSON.stringify({ error: "Evolution API not configured" }), { headers: corsHeaders });
+    }
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY")!;
     const INSTANCE = "crm-whatsapp";
 
