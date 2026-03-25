@@ -5,6 +5,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const DEFAULT_EMAIL = "Khronos@crm.ia";
+const DEFAULT_PASSWORD = "Khronos.crm";
+const DEFAULT_NAME = "Administrador";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -15,7 +19,7 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // GET = check if admin exists
+    // GET = check if default admin exists, auto-create if not
     if (req.method === "GET") {
       const { data: existingAdmins } = await adminClient
         .from("user_roles")
@@ -23,12 +27,49 @@ Deno.serve(async (req) => {
         .eq("role", "admin")
         .limit(1);
 
-      return new Response(JSON.stringify({ has_admin: !!(existingAdmins && existingAdmins.length > 0) }), {
+      const hasAdmin = !!(existingAdmins && existingAdmins.length > 0);
+
+      if (!hasAdmin) {
+        // Auto-create the default admin account
+        const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+          email: DEFAULT_EMAIL,
+          password: DEFAULT_PASSWORD,
+          email_confirm: true,
+          user_metadata: { name: DEFAULT_NAME },
+        });
+
+        if (createError) {
+          // User might already exist in auth but not in user_roles
+          const { data: { users } } = await adminClient.auth.admin.listUsers();
+          const existing = users?.find(u => u.email === DEFAULT_EMAIL);
+          if (existing) {
+            // Ensure role exists
+            await adminClient.from("user_roles").upsert(
+              { user_id: existing.id, role: "admin" },
+              { onConflict: "user_id,role" }
+            );
+            return new Response(JSON.stringify({ has_admin: true, auto_created: true }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          return new Response(JSON.stringify({ has_admin: false, error: createError.message }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        await adminClient.from("user_roles").insert({ user_id: newUser.user.id, role: "admin" });
+
+        return new Response(JSON.stringify({ has_admin: true, auto_created: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ has_admin: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // POST = create first admin
+    // POST = manual admin creation (kept for setup page compatibility)
     const { data: existingAdmins } = await adminClient
       .from("user_roles")
       .select("id")
@@ -48,17 +89,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (password.length < 6) {
-      return new Response(JSON.stringify({ error: "A senha deve ter no mínimo 6 caracteres" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { name },
+      email, password, email_confirm: true, user_metadata: { name },
     });
 
     if (createError) {
@@ -69,7 +101,7 @@ Deno.serve(async (req) => {
 
     await adminClient.from("user_roles").insert({ user_id: newUser.user.id, role: "admin" });
 
-    return new Response(JSON.stringify({ success: true, message: "Administrador criado com sucesso! Faça login para acessar." }), {
+    return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
