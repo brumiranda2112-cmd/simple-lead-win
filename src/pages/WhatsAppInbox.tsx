@@ -233,6 +233,7 @@ export default function WhatsAppInbox() {
         onCreateLead={() => { setKanbanName(selectedConv.contact_name || ''); setKanbanStage('lead_qualificado'); setShowKanbanModal('lead'); }}
         onCreateClient={() => { setKanbanName(selectedConv.contact_name || ''); setKanbanStage('cliente_novo'); setShowKanbanModal('client'); }}
         onFinish={handleFinish}
+        onDelete={handleDelete}
         onTransfer={() => setShowTransferModal(true)}
         onPriorityChange={handlePriorityChange}
         onMarkUnread={handleMarkUnread}
