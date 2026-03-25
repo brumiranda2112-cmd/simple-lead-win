@@ -21,13 +21,8 @@ export default function Login() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Check if any admin exists; if not, redirect to setup
+    // Ensure default admin exists on first access
     supabase.functions.invoke('bootstrap-admin', { method: 'GET' })
-      .then(({ data }) => {
-        if (data && !data.has_admin) {
-          navigate('/setup', { replace: true });
-        }
-      })
       .catch(() => {})
       .finally(() => setChecking(false));
   }, [navigate]);
