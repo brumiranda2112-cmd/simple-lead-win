@@ -131,7 +131,4 @@ export function seedDemoData() {
   return { leads: leadIds.length, tasks: DEMO_TASKS.length, transactions: DEMO_TRANSACTIONS.length };
 }
 
-export function hasExistingData(): boolean {
-  const { getLeads } = require('@/lib/storage');
-  return getLeads().length > 0;
-}
+export { getLeads } from '@/lib/storage';

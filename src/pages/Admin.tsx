@@ -16,6 +16,9 @@ import WhatsAppConnection from '@/components/admin/WhatsAppConnection';
 import QuickRepliesManager from '@/components/admin/QuickRepliesManager';
 import LabelsManager from '@/components/admin/LabelsManager';
 import BrandingManager from '@/components/admin/BrandingManager';
+import { seedDemoData } from '@/lib/seedData';
+import * as storage from '@/lib/storage';
+import { Database, Package } from 'lucide-react';
 
 interface UserWithRole {
   id: string;
