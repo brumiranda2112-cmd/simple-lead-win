@@ -89,7 +89,7 @@ export default function Admin() {
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="quick-replies">Mensagens Rápidas</TabsTrigger>
           <TabsTrigger value="labels">Etiquetas</TabsTrigger>
-        </TabsList>
+          <TabsTrigger value="demo">Dados Demo</TabsTrigger>
 
         <TabsContent value="users" className="space-y-4 mt-4">
           {/* Stats */}
