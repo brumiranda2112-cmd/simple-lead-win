@@ -75,7 +75,7 @@ export default function WhatsAppConnection() {
     const instances = await evolutionApi('instance/fetchInstances', 'GET', undefined, { throwOnError: false });
     if (isEvolutionApiFailure(instances)) return false;
 
-    if (Array.isArray(instances) && instances.some((i: any) => i.instance?.instanceName === 'crm-whatsapp')) {
+    if (Array.isArray(instances) && instances.some((i: any) => (i.name || i.instance?.instanceName) === 'crm-whatsapp')) {
       return true;
     }
 
