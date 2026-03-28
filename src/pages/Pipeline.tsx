@@ -82,7 +82,10 @@ export default function Pipeline() {
   };
 
   const formatCurrency = (v: number) => v ? `R$ ${(v / 1000).toFixed(0)}k` : '';
-  const colTotal = (items: Lead[]) => items.reduce((s, l) => s + (l.estimatedValue || 0), 0);
+  const colTotal = (items: Lead[]) => items.reduce((s, l) => {
+    const projectsTotal = (l.projects || []).reduce((ps, p) => ps + (p.estimatedValue || 0), 0);
+    return s + (l.estimatedValue || 0) + projectsTotal;
+  }, 0);
 
   return (
     <div className="space-y-4">
