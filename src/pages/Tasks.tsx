@@ -120,7 +120,9 @@ export default function Tasks() {
           {isToday(task) && <Badge className="text-[10px] bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0">Hoje</Badge>}
         </div>
         <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
-          <span className="truncate">{getLeadName(task.leadId)}</span>
+          <span className="truncate">
+            {(() => { const l = leads.find(l => l.id === task.leadId); return l ? `${l.leadType === 'cliente' ? '👤' : '📋'} ${l.name}` : 'Removido'; })()}
+          </span>
           <span className="shrink-0">{new Date(task.dueDate).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
         {task.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{task.description}</p>}
