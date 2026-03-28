@@ -273,6 +273,24 @@ export type Database = {
           },
         ]
       }
+      user_permissions: {
+        Row: {
+          id: string
+          permission: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          permission: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          permission?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -408,6 +426,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_permission: {
+        Args: { _permission: string; _user_id: string }
+        Returns: boolean
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -441,6 +463,19 @@ export type Database = {
         | "financeiro.edit"
         | "admin.view"
         | "admin.manage_users"
+        | "leads.create"
+        | "pipeline.create"
+        | "pipeline.delete"
+        | "tasks.create"
+        | "financeiro.create"
+        | "financeiro.delete"
+        | "agendamentos.view"
+        | "agendamentos.create"
+        | "agendamentos.edit"
+        | "agendamentos.delete"
+        | "whatsapp.view"
+        | "whatsapp.edit"
+        | "dashboard.view"
       app_role: "admin" | "manager" | "user"
     }
     CompositeTypes: {
@@ -582,6 +617,19 @@ export const Constants = {
         "financeiro.edit",
         "admin.view",
         "admin.manage_users",
+        "leads.create",
+        "pipeline.create",
+        "pipeline.delete",
+        "tasks.create",
+        "financeiro.create",
+        "financeiro.delete",
+        "agendamentos.view",
+        "agendamentos.create",
+        "agendamentos.edit",
+        "agendamentos.delete",
+        "whatsapp.view",
+        "whatsapp.edit",
+        "dashboard.view",
       ],
       app_role: ["admin", "manager", "user"],
     },

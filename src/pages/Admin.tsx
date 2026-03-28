@@ -11,11 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldAlert, Loader2 } from 'lucide-react';
+import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldAlert, Loader2, Lock } from 'lucide-react';
 import WhatsAppConnection from '@/components/admin/WhatsAppConnection';
 import QuickRepliesManager from '@/components/admin/QuickRepliesManager';
 import LabelsManager from '@/components/admin/LabelsManager';
 import BrandingManager from '@/components/admin/BrandingManager';
+import UserPermissionsManager from '@/components/admin/UserPermissionsManager';
 
 interface UserWithRole {
   id: string;
@@ -42,6 +43,7 @@ export default function Admin() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [resetUser, setResetUser] = useState<UserWithRole | null>(null);
+  const [permUser, setPermUser] = useState<UserWithRole | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -162,6 +164,7 @@ export default function Admin() {
                         <TableCell>{u.responsible_key || '—'}</TableCell>
                         <TableCell><Badge variant={u.is_active ? 'default' : 'secondary'}>{u.is_active ? 'Ativo' : 'Inativo'}</Badge></TableCell>
                         <TableCell className="text-right space-x-1">
+                          <Button size="icon" variant="ghost" title="Permissões" onClick={() => setPermUser(u)}><Lock className="h-4 w-4" /></Button>
                           <Button size="icon" variant="ghost" onClick={() => setEditUser(u)}><Pencil className="h-4 w-4" /></Button>
                           <Button size="icon" variant="ghost" onClick={() => setResetUser(u)}><KeyRound className="h-4 w-4" /></Button>
                           <Button size="icon" variant="ghost" className="text-destructive" onClick={async () => {
@@ -210,6 +213,14 @@ export default function Admin() {
         <DialogContent>
           <DialogHeader><DialogTitle>Resetar Senha — {resetUser?.name}</DialogTitle></DialogHeader>
           {resetUser && <ResetPasswordForm userId={resetUser.id} onSuccess={() => setResetUser(null)} callAdmin={callAdmin} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* Permissions Dialog */}
+      <Dialog open={!!permUser} onOpenChange={(o) => !o && setPermUser(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Permissões — {permUser?.name}</DialogTitle></DialogHeader>
+          {permUser && <UserPermissionsManager userId={permUser.id} userName={permUser.name} userRole={permUser.role} onClose={() => setPermUser(null)} />}
         </DialogContent>
       </Dialog>
     </div>
