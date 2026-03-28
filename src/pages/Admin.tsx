@@ -43,6 +43,7 @@ export default function Admin() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [resetUser, setResetUser] = useState<UserWithRole | null>(null);
+  const [permUser, setPermUser] = useState<UserWithRole | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
