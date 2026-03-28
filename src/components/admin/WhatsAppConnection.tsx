@@ -49,12 +49,12 @@ export default function WhatsAppConnection() {
     }
 
     if (Array.isArray(instances) && instances.length > 0) {
-      const inst = instances.find((i: any) => i.instance?.instanceName === 'crm-whatsapp') || instances[0];
-      const instStatus = inst?.instance?.status || inst?.instance?.connectionStatus || inst?.instance?.state;
+      const inst = instances.find((i: any) => (i.name || i.instance?.instanceName) === 'crm-whatsapp') || instances[0];
+      const instStatus = inst?.connectionStatus || inst?.instance?.status || inst?.instance?.connectionStatus || inst?.instance?.state;
       if (instStatus === 'open') {
-        const owner = inst?.instance?.owner || inst?.instance?.ownerJid || '';
+        const owner = inst?.ownerJid || inst?.instance?.owner || inst?.instance?.ownerJid || '';
         setPhone(owner.replace('@s.whatsapp.net', ''));
-        setProfileName(inst?.instance?.profileName || '');
+        setProfileName(inst?.profileName || inst?.instance?.profileName || '');
         setStatus((prev) => {
           if (prev !== 'connected') registerWebhook();
           return 'connected';
@@ -75,7 +75,7 @@ export default function WhatsAppConnection() {
     const instances = await evolutionApi('instance/fetchInstances', 'GET', undefined, { throwOnError: false });
     if (isEvolutionApiFailure(instances)) return false;
 
-    if (Array.isArray(instances) && instances.some((i: any) => i.instance?.instanceName === 'crm-whatsapp')) {
+    if (Array.isArray(instances) && instances.some((i: any) => (i.name || i.instance?.instanceName) === 'crm-whatsapp')) {
       return true;
     }
 
