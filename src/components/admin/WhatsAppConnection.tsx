@@ -26,11 +26,14 @@ export default function WhatsAppConnection() {
 
     if (Array.isArray(instances) && instances.length > 0) {
       const inst = instances.find((i: any) => i.instance?.instanceName === 'crm-whatsapp') || instances[0];
-      const instStatus = inst?.instance?.status;
+      const instStatus = inst?.instance?.status || inst?.instance?.connectionStatus || inst?.instance?.state;
       if (instStatus === 'open') {
-        const owner = inst?.instance?.owner || '';
+        const owner = inst?.instance?.owner || inst?.instance?.ownerJid || '';
         setPhone(owner.replace('@s.whatsapp.net', ''));
         setProfileName(inst?.instance?.profileName || '');
+        if (status !== 'connected') {
+          registerWebhook();
+        }
         setStatus('connected');
         setShowQr(false);
         setQrBase64(null);
@@ -40,6 +43,29 @@ export default function WhatsAppConnection() {
 
     setStatus('disconnected');
     return false;
+  }, []);
+
+  const registerWebhook = useCallback(async () => {
+    const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`;
+    const result = await evolutionApi('webhook/set/crm-whatsapp', 'POST', {
+      webhook: {
+        url: webhookUrl,
+        enabled: true,
+        events: [
+          'MESSAGES_UPSERT',
+          'CONNECTION_UPDATE',
+        ],
+        webhookByEvents: false,
+        webhookBase64: false,
+      }
+    }, { throwOnError: false });
+
+    if (isEvolutionApiFailure(result)) {
+      console.warn('Webhook registration failed:', result.error);
+    } else {
+      console.log('Webhook registered successfully');
+      toast.success('Webhook configurado automaticamente!');
+    }
   }, []);
 
   useEffect(() => { checkStatus(); }, [checkStatus]);
