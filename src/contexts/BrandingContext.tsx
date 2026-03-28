@@ -87,7 +87,11 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const updateBranding = useCallback((patch: Partial<BrandingConfig>) => {
     setBranding(prev => {
       const next = { ...prev, ...patch };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // localStorage full – still apply in-memory
+      }
       return next;
     });
   }, []);
