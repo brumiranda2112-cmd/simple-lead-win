@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Lead, PIPELINE_COLUMNS, LEAD_AREA_LABELS, LEAD_RESPONSIBLE_LABELS, CLIENT_PIPELINE_STATUS_LABELS, LeadArea, LeadResponsible, ClientPipelineStatus } from '@/types/crm';
+import { Lead, PIPELINE_COLUMNS, LEAD_AREA_LABELS, CLIENT_PIPELINE_STATUS_LABELS, LeadArea, ClientPipelineStatus } from '@/types/crm';
 import * as storage from '@/lib/storage';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,8 +16,10 @@ import { openWhatsApp } from '@/lib/whatsapp';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useProfiles } from '@/hooks/useProfiles';
 
 export default function Pipeline() {
+  const { getProfileName } = useProfiles();
   const [leads, setLeads] = useState<Lead[]>(storage.getLeadsByType('cliente'));
   const [formOpen, setFormOpen] = useState(false);
   const [editLead, setEditLead] = useState<Lead | null>(null);
@@ -139,7 +141,7 @@ export default function Pipeline() {
                                     )}
                                   </div>
                                   <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                                    <User className="w-3 h-3" />{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}
+                                    <User className="w-3 h-3" />{getProfileName(lead.responsible)}
                                   </div>
                                   <div className="flex items-center justify-between mt-2">
                                     {lead.estimatedValue > 0 && <span className="text-xs flex items-center gap-1 text-primary"><DollarSign className="w-3 h-3" />{formatCurrency(lead.estimatedValue)}</span>}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lead, LeadArea, LeadSource, LeadStatus, LeadResponsible, LeadType, LeadProject, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_PIPELINE_STATUS_LABELS, CLIENT_PIPELINE_STATUS_LABELS, LEAD_RESPONSIBLE_LABELS } from '@/types/crm';
+import { Lead, LeadArea, LeadSource, LeadStatus, LeadType, LeadProject, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_PIPELINE_STATUS_LABELS, CLIENT_PIPELINE_STATUS_LABELS } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useProfiles } from '@/hooks/useProfiles';
 
 interface Props {
   open: boolean;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = 'lead' }: Props) {
+  const { profiles } = useProfiles();
   const [form, setForm] = useState({
     name: lead?.name || '',
     email: lead?.email || '',
@@ -122,8 +124,8 @@ export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = '
               <Select value={form.responsible} onValueChange={v => update('responsible', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(LEAD_RESPONSIBLE_LABELS).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  {profiles.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
