@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Lead, LeadArea, LeadSource, LeadStatus, LeadResponsible, LeadType, LeadProject, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_PIPELINE_STATUS_LABELS, CLIENT_PIPELINE_STATUS_LABELS, LEAD_RESPONSIBLE_LABELS } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,26 @@ export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = '
   });
   const [projects, setProjects] = useState<LeadProject[]>(lead?.projects || []);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setForm({
+      name: lead?.name || '',
+      email: lead?.email || '',
+      phone: lead?.phone || '',
+      company: lead?.company || '',
+      area: lead?.area || 'agentes_ia' as LeadArea,
+      source: lead?.source || 'indicacao' as LeadSource,
+      responsible: lead?.responsible || '',
+      estimatedValue: lead?.estimatedValue || 0,
+      leadType: lead?.leadType || defaultLeadType,
+      status: lead?.status || (defaultLeadType === 'cliente' ? 'cliente_novo' : 'lead_qualificado') as LeadStatus,
+      notes: lead?.notes || '',
+      nextFollowup: lead?.nextFollowup || null,
+      wonLostReason: lead?.wonLostReason || '',
+    });
+    setProjects(lead?.projects || []);
+    setError('');
+  }, [lead, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
