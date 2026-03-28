@@ -164,6 +164,7 @@ export default function Admin() {
                         <TableCell>{u.responsible_key || '—'}</TableCell>
                         <TableCell><Badge variant={u.is_active ? 'default' : 'secondary'}>{u.is_active ? 'Ativo' : 'Inativo'}</Badge></TableCell>
                         <TableCell className="text-right space-x-1">
+                          <Button size="icon" variant="ghost" title="Permissões" onClick={() => setPermUser(u)}><Lock className="h-4 w-4" /></Button>
                           <Button size="icon" variant="ghost" onClick={() => setEditUser(u)}><Pencil className="h-4 w-4" /></Button>
                           <Button size="icon" variant="ghost" onClick={() => setResetUser(u)}><KeyRound className="h-4 w-4" /></Button>
                           <Button size="icon" variant="ghost" className="text-destructive" onClick={async () => {
