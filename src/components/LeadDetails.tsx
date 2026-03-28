@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Phone, Mail, Building2, Clock, DollarSign, FileText, ArrowRight, Plus, CheckCircle, User, MessageCircle } from 'lucide-react';
+import { Phone, Mail, Building2, Clock, DollarSign, FileText, ArrowRight, Plus, CheckCircle, User, MessageCircle, Briefcase } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { LEAD_AREA_LABELS as AREA_LABELS_DETAIL } from '@/types/crm';
 import { TaskForm } from '@/components/TaskForm';
 import { openWhatsApp } from '@/lib/whatsapp';
 import { useState } from 'react';
@@ -62,6 +64,31 @@ export function LeadDetails({ lead, open, onOpenChange, onRefresh }: Props) {
             {lead.nextFollowup && <div className="flex items-center gap-2 text-muted-foreground"><Clock className="w-4 h-4" />{new Date(lead.nextFollowup).toLocaleString('pt-BR')}</div>}
           </div>
           {lead.notes && <p className="text-sm bg-secondary/50 p-3 rounded-lg">{lead.notes}</p>}
+
+          {lead.projects && lead.projects.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-1"><Briefcase className="w-4 h-4" />Trabalhos ({lead.projects.length})</h3>
+                <div className="space-y-2">
+                  {lead.projects.map(p => (
+                    <Card key={p.id} className="p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{p.name || 'Sem nome'}</p>
+                        <p className="text-xs text-muted-foreground">{AREA_LABELS_DETAIL[p.area]}</p>
+                      </div>
+                      {p.estimatedValue > 0 && (
+                        <span className="text-sm font-medium text-primary">R$ {p.estimatedValue.toLocaleString('pt-BR')}</span>
+                      )}
+                    </Card>
+                  ))}
+                  <p className="text-xs text-muted-foreground text-right">
+                    Total: R$ {lead.projects.reduce((s, p) => s + (p.estimatedValue || 0), 0).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={() => setTaskFormOpen(true)}><Plus className="w-3 h-3 mr-1" />Follow-up</Button>
