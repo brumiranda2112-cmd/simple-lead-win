@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const API_KEY = Deno.env.get("EVOLUTION_API_KEY");
+    const API_KEY = (Deno.env.get("EVOLUTION_API_KEY") || "").trim().replace(/[^\x20-\x7E]/g, "");
 
     if (!API_KEY) {
       return new Response(JSON.stringify({ error: "EVOLUTION_API_KEY is not configured" }), {
@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
         fetchOptions.body = JSON.stringify(body);
       }
 
+      console.log(`[evolution-proxy] Calling: ${EVOLUTION_URL}/${sanitizedPath} with key length: ${API_KEY.length}`);
       const response = await fetch(`${EVOLUTION_URL}/${sanitizedPath}`, fetchOptions);
       const raw = await response.text();
       let data: unknown = null;
