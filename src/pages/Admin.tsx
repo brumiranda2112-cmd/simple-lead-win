@@ -16,9 +16,6 @@ import WhatsAppConnection from '@/components/admin/WhatsAppConnection';
 import QuickRepliesManager from '@/components/admin/QuickRepliesManager';
 import LabelsManager from '@/components/admin/LabelsManager';
 import BrandingManager from '@/components/admin/BrandingManager';
-import { seedDemoData } from '@/lib/seedData';
-import * as storage from '@/lib/storage';
-import { Database, Package } from 'lucide-react';
 
 interface UserWithRole {
   id: string;
@@ -89,7 +86,6 @@ export default function Admin() {
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="quick-replies">Mensagens Rápidas</TabsTrigger>
           <TabsTrigger value="labels">Etiquetas</TabsTrigger>
-          <TabsTrigger value="demo">Dados Demo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4 mt-4">
@@ -199,58 +195,6 @@ export default function Admin() {
           <LabelsManager />
         </TabsContent>
 
-        <TabsContent value="demo" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5 text-primary" />
-                Dados de Demonstração
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Carregue dados fictícios para demonstrar todas as funcionalidades do CRM: leads, clientes, tarefas, pipeline e financeiro.
-              </p>
-              <div className="flex gap-3">
-                <Button onClick={() => {
-                  if (storage.getLeads().length > 0 && !confirm('Já existem dados no sistema. Deseja adicionar mais dados demo?')) return;
-                  const result = seedDemoData();
-                  toast.success(`Dados carregados: ${result.leads} leads/clientes, ${result.tasks} tarefas, ${result.transactions} transações`);
-                }}>
-                  <Package className="h-4 w-4 mr-2" /> Carregar Dados Demo
-                </Button>
-                <Button variant="destructive" onClick={() => {
-                  if (!confirm('Isso vai apagar TODOS os dados do CRM (leads, tarefas, transações). Confirma?')) return;
-                  localStorage.clear();
-                  toast.success('Todos os dados foram limpos');
-                  window.location.reload();
-                }}>
-                  <Trash2 className="h-4 w-4 mr-2" /> Limpar Todos os Dados
-                </Button>
-              </div>
-              <div className="grid grid-cols-3 gap-4 mt-4">
-                <Card className="border-border/50">
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold">{storage.getLeads().filter(l => l.leadType === 'lead').length}</p>
-                    <p className="text-sm text-muted-foreground">Leads</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-border/50">
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold">{storage.getLeads().filter(l => l.leadType === 'cliente').length}</p>
-                    <p className="text-sm text-muted-foreground">Clientes</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-border/50">
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold">{storage.getTasks().length}</p>
-                    <p className="text-sm text-muted-foreground">Tarefas</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Edit Dialog */}
