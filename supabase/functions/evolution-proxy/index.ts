@@ -52,7 +52,22 @@ Deno.serve(async (req) => {
         fetchOptions.body = JSON.stringify(body);
       }
 
-      const response = await fetch(`${EVOLUTION_URL}/${sanitizedPath}`, fetchOptions);
+      // Try with apikey header first
+      let response = await fetch(`${EVOLUTION_URL}/${sanitizedPath}`, fetchOptions);
+
+      // If 401, retry with Authorization Bearer header
+      if (response.status === 401) {
+        const retryOptions: RequestInit = {
+          ...fetchOptions,
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${API_KEY}`,
+            apikey: API_KEY,
+          },
+        };
+        response = await fetch(`${EVOLUTION_URL}/${sanitizedPath}`, retryOptions);
+      }
+
       const raw = await response.text();
       let data: unknown = null;
 
