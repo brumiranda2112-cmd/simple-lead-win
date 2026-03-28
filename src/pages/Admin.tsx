@@ -215,6 +215,14 @@ export default function Admin() {
           {resetUser && <ResetPasswordForm userId={resetUser.id} onSuccess={() => setResetUser(null)} callAdmin={callAdmin} />}
         </DialogContent>
       </Dialog>
+
+      {/* Permissions Dialog */}
+      <Dialog open={!!permUser} onOpenChange={(o) => !o && setPermUser(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Permissões — {permUser?.name}</DialogTitle></DialogHeader>
+          {permUser && <UserPermissionsManager userId={permUser.id} userName={permUser.name} userRole={permUser.role} onClose={() => setPermUser(null)} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
