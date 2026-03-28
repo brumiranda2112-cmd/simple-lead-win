@@ -13,8 +13,32 @@ export default function WhatsAppConnection() {
   const [showQr, setShowQr] = useState(false);
   const retryRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout>>();
-
   const [profileName, setProfileName] = useState('');
+  const webhookRegisteredRef = useRef(false);
+
+  const registerWebhook = useCallback(async () => {
+    if (webhookRegisteredRef.current) return;
+    webhookRegisteredRef.current = true;
+
+    const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`;
+    const result = await evolutionApi('webhook/set/crm-whatsapp', 'POST', {
+      webhook: {
+        url: webhookUrl,
+        enabled: true,
+        events: ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'],
+        webhookByEvents: false,
+        webhookBase64: false,
+      }
+    }, { throwOnError: false });
+
+    if (isEvolutionApiFailure(result)) {
+      console.warn('Webhook registration failed:', result.error);
+      webhookRegisteredRef.current = false;
+    } else {
+      console.log('Webhook registered successfully');
+      toast.success('Webhook configurado automaticamente!');
+    }
+  }, []);
 
   const checkStatus = useCallback(async () => {
     const instances = await evolutionApi('instance/fetchInstances', 'GET', undefined, { throwOnError: false });
@@ -31,10 +55,10 @@ export default function WhatsAppConnection() {
         const owner = inst?.instance?.owner || inst?.instance?.ownerJid || '';
         setPhone(owner.replace('@s.whatsapp.net', ''));
         setProfileName(inst?.instance?.profileName || '');
-        if (status !== 'connected') {
-          registerWebhook();
-        }
-        setStatus('connected');
+        setStatus((prev) => {
+          if (prev !== 'connected') registerWebhook();
+          return 'connected';
+        });
         setShowQr(false);
         setQrBase64(null);
         return true;
@@ -43,38 +67,13 @@ export default function WhatsAppConnection() {
 
     setStatus('disconnected');
     return false;
-  }, []);
-
-  const registerWebhook = useCallback(async () => {
-    const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`;
-    const result = await evolutionApi('webhook/set/crm-whatsapp', 'POST', {
-      webhook: {
-        url: webhookUrl,
-        enabled: true,
-        events: [
-          'MESSAGES_UPSERT',
-          'CONNECTION_UPDATE',
-        ],
-        webhookByEvents: false,
-        webhookBase64: false,
-      }
-    }, { throwOnError: false });
-
-    if (isEvolutionApiFailure(result)) {
-      console.warn('Webhook registration failed:', result.error);
-    } else {
-      console.log('Webhook registered successfully');
-      toast.success('Webhook configurado automaticamente!');
-    }
-  }, []);
+  }, [registerWebhook]);
 
   useEffect(() => { checkStatus(); }, [checkStatus]);
 
   const ensureInstance = useCallback(async () => {
     const instances = await evolutionApi('instance/fetchInstances', 'GET', undefined, { throwOnError: false });
-    if (isEvolutionApiFailure(instances)) {
-      return false;
-    }
+    if (isEvolutionApiFailure(instances)) return false;
 
     if (Array.isArray(instances) && instances.some((i: any) => i.instance?.instanceName === 'crm-whatsapp')) {
       return true;
@@ -152,7 +151,7 @@ export default function WhatsAppConnection() {
       toast.error(result.error || 'Falha ao desconectar');
       return;
     }
-
+    webhookRegisteredRef.current = false;
     setStatus('disconnected');
     setPhone('');
   };
@@ -210,7 +209,7 @@ export default function WhatsAppConnection() {
                   alt="QR Code"
                   width={280}
                   height={280}
-                  style={{ background: 'white', padding: '16px', borderRadius: '8px' }}
+                  className="bg-white p-4 rounded-lg"
                 />
               ) : (
                 <div className="w-[280px] h-[280px] flex flex-col items-center justify-center bg-muted/30 rounded-lg gap-2">
