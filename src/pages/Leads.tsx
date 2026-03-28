@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Lead, LEAD_PIPELINE_COLUMNS, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_PIPELINE_STATUS_LABELS, LEAD_RESPONSIBLE_LABELS, LeadArea, LeadSource, LeadPipelineStatus, LeadResponsible } from '@/types/crm';
+import { Lead, LEAD_PIPELINE_COLUMNS, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_PIPELINE_STATUS_LABELS, LeadArea, LeadSource, LeadPipelineStatus } from '@/types/crm';
 import * as storage from '@/lib/storage';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,8 +15,10 @@ import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Pencil, Tr
 import { openWhatsApp } from '@/lib/whatsapp';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { useProfiles } from '@/hooks/useProfiles';
 
 export default function Leads() {
+  const { getProfileName } = useProfiles();
   const [leads, setLeads] = useState<Lead[]>(storage.getLeadsByType('lead'));
   const [search, setSearch] = useState('');
   const [filterArea, setFilterArea] = useState<string>('all');
@@ -132,7 +134,7 @@ export default function Leads() {
                                     )}
                                   </div>
                                   <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                                    <User className="w-3 h-3" />{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}
+                                    <User className="w-3 h-3" />{getProfileName(lead.responsible)}
                                   </div>
                                   <div className="flex items-center justify-between mt-2">
                                     {lead.estimatedValue > 0 && <span className="text-xs flex items-center gap-1 text-primary"><DollarSign className="w-3 h-3" />{formatCurrency(lead.estimatedValue)}</span>}
@@ -214,7 +216,7 @@ export default function Leads() {
                 ) : filtered.map(lead => (
                   <TableRow key={lead.id} className="hover:bg-secondary/30 cursor-pointer" onClick={() => setDetailLead(lead)}>
                     <TableCell className="font-medium">{lead.name}</TableCell>
-                    <TableCell><Badge variant="outline">{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{getProfileName(lead.responsible)}</Badge></TableCell>
                     <TableCell>{lead.phone}</TableCell>
                     <TableCell><Badge variant="outline">{LEAD_AREA_LABELS[lead.area as LeadArea]}</Badge></TableCell>
                     <TableCell><Badge variant="secondary">{LEAD_PIPELINE_STATUS_LABELS[lead.status as LeadPipelineStatus] || lead.status}</Badge></TableCell>

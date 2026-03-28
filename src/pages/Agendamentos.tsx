@@ -98,7 +98,7 @@ export default function Agendamentos() {
     loadData();
   };
 
-  const bookingLink = `${window.location.origin}/agendar`;
+  const bookingLink = `https://crm.khronos.ia.br/agendar`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(bookingLink);

@@ -1,4 +1,4 @@
-import { Lead, LEAD_STATUS_LABELS, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_RESPONSIBLE_LABELS, PIPELINE_COLUMNS, LeadArea, LeadSource, LeadResponsible } from '@/types/crm';
+import { Lead, LEAD_STATUS_LABELS, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, PIPELINE_COLUMNS, LeadArea, LeadSource } from '@/types/crm';
 import * as storage from '@/lib/storage';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { LEAD_AREA_LABELS as AREA_LABELS_DETAIL } from '@/types/crm';
 import { TaskForm } from '@/components/TaskForm';
 import { openWhatsApp } from '@/lib/whatsapp';
 import { useState } from 'react';
+import { useProfiles } from '@/hooks/useProfiles';
 
 interface Props {
   lead: Lead;
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function LeadDetails({ lead, open, onOpenChange, onRefresh }: Props) {
+  const { getProfileName } = useProfiles();
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const activities = storage.getLeadActivities(lead.id);
   const tasks = storage.getTasks().filter(t => t.leadId === lead.id);
@@ -60,7 +62,7 @@ export function LeadDetails({ lead, open, onOpenChange, onRefresh }: Props) {
             <div className="flex items-center gap-2 text-muted-foreground"><DollarSign className="w-4 h-4" />R$ {lead.estimatedValue.toLocaleString('pt-BR')}</div>
             <div className="flex items-center gap-2 text-muted-foreground"><FileText className="w-4 h-4" />{LEAD_AREA_LABELS[lead.area as LeadArea]}</div>
             <div className="flex items-center gap-2 text-muted-foreground">Origem: {LEAD_SOURCE_LABELS[lead.source as LeadSource]}</div>
-            <div className="flex items-center gap-2 text-muted-foreground"><User className="w-4 h-4" />Responsável: {LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}</div>
+            <div className="flex items-center gap-2 text-muted-foreground"><User className="w-4 h-4" />Responsável: {getProfileName(lead.responsible)}</div>
             {lead.nextFollowup && <div className="flex items-center gap-2 text-muted-foreground"><Clock className="w-4 h-4" />{new Date(lead.nextFollowup).toLocaleString('pt-BR')}</div>}
           </div>
           {lead.notes && <p className="text-sm bg-secondary/50 p-3 rounded-lg">{lead.notes}</p>}
