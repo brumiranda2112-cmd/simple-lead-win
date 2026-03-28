@@ -261,35 +261,50 @@ export default function Tasks() {
         </TabsContent>
       </Tabs>
 
-      {/* Task form */}
-      {formOpen && (
-        <>
-          {!selectedLeadId ? (
-            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-              <div className="bg-card border border-border rounded-lg p-6 w-full max-w-sm space-y-4">
-                <h3 className="font-semibold">Selecione o Lead</h3>
+      {/* Task form - select lead or client */}
+      {formOpen && !selectedLeadId && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+          <div className="bg-card border border-border rounded-lg p-6 w-full max-w-sm space-y-4">
+            <h3 className="font-semibold">Vincular a</h3>
+            <Tabs defaultValue="lead" className="w-full">
+              <TabsList className="w-full">
+                <TabsTrigger value="lead" className="flex-1">Leads</TabsTrigger>
+                <TabsTrigger value="cliente" className="flex-1">Clientes</TabsTrigger>
+              </TabsList>
+              <TabsContent value="lead" className="mt-3">
                 <Select value={selectedLeadId} onValueChange={v => setSelectedLeadId(v)}>
                   <SelectTrigger><SelectValue placeholder="Escolha um lead..." /></SelectTrigger>
                   <SelectContent>
-                    {leads.filter(l => l.status !== 'finalizado').map(l => (
+                    {leads.filter(l => l.leadType === 'lead' && l.status !== 'fechado').map(l => (
                       <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => { setFormOpen(false); setSelectedLeadId(''); }}>Cancelar</Button>
-                </div>
-              </div>
+              </TabsContent>
+              <TabsContent value="cliente" className="mt-3">
+                <Select value={selectedLeadId} onValueChange={v => setSelectedLeadId(v)}>
+                  <SelectTrigger><SelectValue placeholder="Escolha um cliente..." /></SelectTrigger>
+                  <SelectContent>
+                    {leads.filter(l => l.leadType === 'cliente' && l.status !== 'finalizado').map(l => (
+                      <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </TabsContent>
+            </Tabs>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => { setFormOpen(false); setSelectedLeadId(''); }}>Cancelar</Button>
             </div>
-          ) : (
-            <TaskForm
-              open={true}
-              onOpenChange={o => { if (!o) { setFormOpen(false); setSelectedLeadId(''); } }}
-              leadId={selectedLeadId}
-              onSave={() => { refresh(); setSelectedLeadId(''); }}
-            />
-          )}
-        </>
+          </div>
+        </div>
+      )}
+      {formOpen && selectedLeadId && (
+        <TaskForm
+          open={true}
+          onOpenChange={o => { if (!o) { setFormOpen(false); setSelectedLeadId(''); } }}
+          leadId={selectedLeadId}
+          onSave={() => { refresh(); setSelectedLeadId(''); }}
+        />
       )}
     </div>
   );
