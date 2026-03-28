@@ -211,7 +211,7 @@ export default function Pipeline() {
                 ) : filtered.map(lead => (
                   <TableRow key={lead.id} className="hover:bg-secondary/30 cursor-pointer" onClick={() => setDetailLead(lead)}>
                     <TableCell className="font-medium">{lead.name}</TableCell>
-                    <TableCell><Badge variant="outline">{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{getProfileName(lead.responsible)}</Badge></TableCell>
                     <TableCell>{lead.phone}</TableCell>
                     <TableCell><Badge variant="outline">{LEAD_AREA_LABELS[lead.area as LeadArea]}</Badge></TableCell>
                     <TableCell><Badge variant="secondary">{CLIENT_PIPELINE_STATUS_LABELS[lead.status as ClientPipelineStatus] || lead.status}</Badge></TableCell>
