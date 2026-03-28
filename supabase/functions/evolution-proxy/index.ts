@@ -52,22 +52,8 @@ Deno.serve(async (req) => {
         fetchOptions.body = JSON.stringify(body);
       }
 
-      // Try with apikey header first
-      let response = await fetch(`${EVOLUTION_URL}/${sanitizedPath}`, fetchOptions);
-
-      // If 401, retry with Authorization Bearer header
-      if (response.status === 401) {
-        const retryOptions: RequestInit = {
-          ...fetchOptions,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${API_KEY}`,
-            apikey: API_KEY,
-          },
-        };
-        response = await fetch(`${EVOLUTION_URL}/${sanitizedPath}`, retryOptions);
-      }
-
+      console.log(`[evolution-proxy] Calling: ${EVOLUTION_URL}/${sanitizedPath} with key length: ${API_KEY.length}`);
+      const response = await fetch(`${EVOLUTION_URL}/${sanitizedPath}`, fetchOptions);
       const raw = await response.text();
       let data: unknown = null;
 
