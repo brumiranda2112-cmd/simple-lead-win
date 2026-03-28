@@ -26,11 +26,14 @@ export default function WhatsAppConnection() {
 
     if (Array.isArray(instances) && instances.length > 0) {
       const inst = instances.find((i: any) => i.instance?.instanceName === 'crm-whatsapp') || instances[0];
-      const instStatus = inst?.instance?.status;
+      const instStatus = inst?.instance?.status || inst?.instance?.connectionStatus || inst?.instance?.state;
       if (instStatus === 'open') {
-        const owner = inst?.instance?.owner || '';
+        const owner = inst?.instance?.owner || inst?.instance?.ownerJid || '';
         setPhone(owner.replace('@s.whatsapp.net', ''));
         setProfileName(inst?.instance?.profileName || '');
+        if (status !== 'connected') {
+          registerWebhook();
+        }
         setStatus('connected');
         setShowQr(false);
         setQrBase64(null);
