@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const API_KEY = Deno.env.get("EVOLUTION_API_KEY");
+    const API_KEY = (Deno.env.get("EVOLUTION_API_KEY") || "").trim().replace(/[^\x20-\x7E]/g, "");
 
     if (!API_KEY) {
       return new Response(JSON.stringify({ error: "EVOLUTION_API_KEY is not configured" }), {
