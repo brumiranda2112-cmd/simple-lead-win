@@ -11,11 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldAlert, Loader2 } from 'lucide-react';
+import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldAlert, Loader2, Lock } from 'lucide-react';
 import WhatsAppConnection from '@/components/admin/WhatsAppConnection';
 import QuickRepliesManager from '@/components/admin/QuickRepliesManager';
 import LabelsManager from '@/components/admin/LabelsManager';
 import BrandingManager from '@/components/admin/BrandingManager';
+import UserPermissionsManager from '@/components/admin/UserPermissionsManager';
 
 interface UserWithRole {
   id: string;
