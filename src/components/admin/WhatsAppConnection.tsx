@@ -42,6 +42,29 @@ export default function WhatsAppConnection() {
     return false;
   }, []);
 
+  const registerWebhook = useCallback(async () => {
+    const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`;
+    const result = await evolutionApi('webhook/set/crm-whatsapp', 'POST', {
+      webhook: {
+        url: webhookUrl,
+        enabled: true,
+        events: [
+          'MESSAGES_UPSERT',
+          'CONNECTION_UPDATE',
+        ],
+        webhookByEvents: false,
+        webhookBase64: false,
+      }
+    }, { throwOnError: false });
+
+    if (isEvolutionApiFailure(result)) {
+      console.warn('Webhook registration failed:', result.error);
+    } else {
+      console.log('Webhook registered successfully');
+      toast.success('Webhook configurado automaticamente!');
+    }
+  }, []);
+
   useEffect(() => { checkStatus(); }, [checkStatus]);
 
   const ensureInstance = useCallback(async () => {
