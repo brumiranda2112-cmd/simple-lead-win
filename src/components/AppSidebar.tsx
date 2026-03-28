@@ -6,6 +6,7 @@ import { getTotalUnread } from '@/lib/whatsappService';
 import iconKhronos from '@/assets/icon-khronos.png';
 import { useEffect, useState } from 'react';
 import { useBranding } from '@/contexts/BrandingContext';
+import { useMyPermissions } from '@/hooks/usePermissions';
 import {
   Sidebar,
   SidebarContent,
@@ -21,14 +22,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 
 const navItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Clientes', url: '/pipeline', icon: Kanban },
-  { title: 'Leads', url: '/leads', icon: Users },
-  { title: 'WhatsApp', url: '/whatsapp', icon: MessageCircle },
-  { title: 'Tarefas', url: '/tasks', icon: CheckSquare },
-  { title: 'Financeiro', url: '/financeiro', icon: DollarSign },
-  { title: 'Agendamentos', url: '/agendamentos', icon: CalendarDays },
-  { title: 'Admin', url: '/admin', icon: Shield },
+  { title: 'Dashboard', url: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
+  { title: 'Clientes', url: '/pipeline', icon: Kanban, permission: 'pipeline.view' },
+  { title: 'Leads', url: '/leads', icon: Users, permission: 'leads.view' },
+  { title: 'WhatsApp', url: '/whatsapp', icon: MessageCircle, permission: 'whatsapp.view' },
+  { title: 'Tarefas', url: '/tasks', icon: CheckSquare, permission: 'tasks.view' },
+  { title: 'Financeiro', url: '/financeiro', icon: DollarSign, permission: 'financeiro.view' },
+  { title: 'Agendamentos', url: '/agendamentos', icon: CalendarDays, permission: 'agendamentos.view' },
+  { title: 'Admin', url: '/admin', icon: Shield, permission: 'admin.view' },
 ];
 
 export function AppSidebar() {
@@ -36,9 +37,10 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const { profile, isAdmin, logout } = useAuth();
   const { branding } = useBranding();
+  const { hasPermission } = useMyPermissions();
   const pendingCount = getOverdueTasks().length + getTodayTasks().length;
   const [whatsappUnread, setWhatsappUnread] = useState(0);
-  const visibleItems = navItems.filter(item => !('adminOnly' in item) || isAdmin);
+  const visibleItems = navItems.filter(item => isAdmin || hasPermission(item.permission));
 
   useEffect(() => {
     getTotalUnread().then(setWhatsappUnread);
