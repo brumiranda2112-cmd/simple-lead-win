@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadForm } from '@/components/LeadForm';
 import { LeadDetails } from '@/components/LeadDetails';
-import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Eye, Pencil, Trash2, Kanban, List } from 'lucide-react';
+import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Eye, Pencil, Trash2, Kanban, List, Briefcase } from 'lucide-react';
 import { openWhatsApp } from '@/lib/whatsapp';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -142,6 +142,17 @@ export default function Pipeline() {
                                     {lead.estimatedValue > 0 && <span className="text-xs flex items-center gap-1 text-primary"><DollarSign className="w-3 h-3" />{formatCurrency(lead.estimatedValue)}</span>}
                                     <Badge variant="outline" className="text-[10px]">{LEAD_AREA_LABELS[lead.area as LeadArea]}</Badge>
                                   </div>
+                                  {lead.projects && lead.projects.length > 0 && (
+                                    <div className="mt-2 space-y-1">
+                                      {lead.projects.map(p => (
+                                        <div key={p.id} className="flex items-center gap-1 text-[10px] text-muted-foreground bg-secondary/40 rounded px-1.5 py-0.5">
+                                          <Briefcase className="w-2.5 h-2.5 shrink-0" />
+                                          <span className="truncate">{p.name || 'Sem nome'}</span>
+                                          {p.estimatedValue > 0 && <span className="ml-auto text-primary shrink-0">{formatCurrency(p.estimatedValue)}</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                   {lead.nextFollowup && (
                                     <div className="flex items-center gap-1 mt-1.5 text-[10px] text-muted-foreground">
                                       <Clock className="w-3 h-3" />{new Date(lead.nextFollowup).toLocaleDateString('pt-BR')}
