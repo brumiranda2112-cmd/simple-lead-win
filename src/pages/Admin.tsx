@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { loadDemoData } from '@/lib/demoData';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldAlert, Loader2, Lock } from 'lucide-react';
+import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldAlert, Loader2, Lock, Database } from 'lucide-react';
 import WhatsAppConnection from '@/components/admin/WhatsAppConnection';
 import QuickRepliesManager from '@/components/admin/QuickRepliesManager';
 import LabelsManager from '@/components/admin/LabelsManager';
@@ -82,12 +83,13 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="users">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="branding">Personalização</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="quick-replies">Mensagens Rápidas</TabsTrigger>
           <TabsTrigger value="labels">Etiquetas</TabsTrigger>
+          <TabsTrigger value="demo">Dados Demo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4 mt-4">
@@ -196,6 +198,23 @@ export default function Admin() {
 
         <TabsContent value="labels" className="mt-4">
           <LabelsManager />
+        </TabsContent>
+
+        <TabsContent value="demo" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Database className="w-5 h-5" /> Dados de Demonstração</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Gere dados fictícios para testar todas as funcionalidades do CRM: leads, clientes, tarefas, transações e metas.
+              </p>
+              <p className="text-sm text-destructive font-medium">⚠️ Isso substituirá todos os dados atuais do localStorage!</p>
+              <Button onClick={() => { loadDemoData(); toast.success('Dados demo carregados! Recarregue a página.'); setTimeout(() => window.location.reload(), 1000); }}>
+                <Database className="w-4 h-4 mr-2" /> Carregar Dados Demo
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
       </Tabs>

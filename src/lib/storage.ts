@@ -1,4 +1,4 @@
-import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction, LeadType } from '@/types/crm';
+import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction, LeadType, UserGoal } from '@/types/crm';
 
 let _userId: string | null = null;
 
@@ -18,6 +18,7 @@ const BASE_KEYS = {
   TASKS: 'crm_tasks',
   ACTIVITIES: 'crm_activities',
   TRANSACTIONS: 'crm_transactions',
+  GOALS: 'crm_goals',
 };
 
 function uid(): string {
@@ -148,7 +149,12 @@ export function convertLeadToClient(id: string): Lead | null {
 
 // ===== TASKS =====
 export function getTasks(): Task[] {
-  return get<Task[]>(BASE_KEYS.TASKS, []);
+  return get<Task[]>(BASE_KEYS.TASKS, []).map(t => ({
+    ...t,
+    priority: t.priority || 'media',
+    subtasks: t.subtasks || [],
+    comments: t.comments || [],
+  }));
 }
 
 export function getTask(id: string): Task | undefined {
@@ -261,4 +267,34 @@ export function syncRevenueFromLeads() {
       });
     }
   });
+}
+
+// ===== GOALS =====
+export function getGoals(): UserGoal[] {
+  return get<UserGoal[]>(BASE_KEYS.GOALS, []);
+}
+
+export function saveGoals(goals: UserGoal[]) {
+  set(BASE_KEYS.GOALS, goals);
+}
+
+export function createGoal(data: Omit<UserGoal, 'id'>): UserGoal {
+  const goals = getGoals();
+  const goal: UserGoal = { ...data, id: uid() };
+  goals.push(goal);
+  set(BASE_KEYS.GOALS, goals);
+  return goal;
+}
+
+export function updateGoal(id: string, data: Partial<UserGoal>): UserGoal | null {
+  const goals = getGoals();
+  const idx = goals.findIndex(g => g.id === id);
+  if (idx === -1) return null;
+  goals[idx] = { ...goals[idx], ...data };
+  set(BASE_KEYS.GOALS, goals);
+  return goals[idx];
+}
+
+export function deleteGoal(id: string) {
+  set(BASE_KEYS.GOALS, getGoals().filter(g => g.id !== id));
 }

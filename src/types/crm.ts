@@ -2,6 +2,7 @@ export type LeadArea = 'agentes_ia' | 'automacoes' | 'sistemas' | 'consultoria' 
 export type LeadSource = 'indicacao' | 'google' | 'instagram' | 'site' | 'linkedin' | 'outro';
 export type LeadResponsible = string;
 export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'lembrete' | 'mensagem';
+export type TaskPriority = 'baixa' | 'media' | 'alta' | 'urgente';
 
 // Lead pipeline statuses (prospecting)
 export type LeadPipelineStatus = 'lead_qualificado' | 'call_diagnostico' | 'proposta_implementacao' | 'call_fechamento' | 'proposta_honorarios' | 'fechado' | 'followup_d1' | 'followup_d2' | 'followup_d3' | 'followup_d4' | 'followup_d5' | 'followup_d6' | 'followup_d7' | 'followup_d8' | 'followup_d9' | 'followup_d10';
@@ -34,16 +35,42 @@ export interface Lead {
   updatedAt: string;
 }
 
+export interface Subtask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export interface TaskComment {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: string;
+}
+
 export interface Task {
   id: string;
   leadId: string;
   type: TaskType;
+  priority: TaskPriority;
   title: string;
   description: string;
   dueDate: string;
   completed: boolean;
   completedAt: string | null;
   createdAt: string;
+  subtasks?: Subtask[];
+  comments?: TaskComment[];
+}
+
+export interface UserGoal {
+  id: string;
+  userId: string;
+  userName: string;
+  target: number;
+  current: number;
+  period: string; // e.g. '2026-04'
+  type: 'revenue' | 'deals';
 }
 
 export interface Activity {
@@ -169,6 +196,20 @@ export const TASK_TYPE_LABELS: Record<TaskType, string> = {
   diagnostico: 'Diagnóstico',
   lembrete: 'Lembrete',
   mensagem: 'Mensagem',
+};
+
+export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
+  baixa: 'Baixa',
+  media: 'Média',
+  alta: 'Alta',
+  urgente: 'Urgente',
+};
+
+export const TASK_PRIORITY_COLORS: Record<TaskPriority, string> = {
+  baixa: 'text-blue-400 bg-blue-400/10 border-blue-400/30',
+  media: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
+  alta: 'text-orange-400 bg-orange-400/10 border-orange-400/30',
+  urgente: 'text-red-400 bg-red-400/10 border-red-400/30',
 };
 
 // Lead pipeline columns
