@@ -201,7 +201,7 @@ export function loadDemoData() {
     });
     idMap.set(l.id, created.id);
     // Manually update timestamps for realism
-    storage.updateLead(created.id, { createdAt: l.createdAt, updatedAt: l.updatedAt });
+    storage.updateLead(created.id, { createdAt: l.createdAt, updatedAt: l.updatedAt }, true);
   });
 
   tasks.forEach(t => {
