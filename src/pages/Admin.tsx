@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { loadDemoData } from '@/lib/demoData';
+import { loadDemoData, loadWhatsAppDemoData } from '@/lib/demoData';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
