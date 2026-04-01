@@ -1,5 +1,6 @@
 import { Lead, Task, Transaction, Activity, UserGoal } from '@/types/crm';
 import * as storage from '@/lib/storage';
+import { supabase } from '@/integrations/supabase/client';
 
 function uid() { return crypto.randomUUID(); }
 
