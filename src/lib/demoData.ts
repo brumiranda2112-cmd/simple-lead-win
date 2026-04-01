@@ -1,4 +1,5 @@
 import { Lead, Task, Transaction, Activity, UserGoal } from '@/types/crm';
+import * as storage from '@/lib/storage';
 
 function uid() { return crypto.randomUUID(); }
 
