@@ -18,6 +18,7 @@ const BASE_KEYS = {
   TASKS: 'crm_tasks',
   ACTIVITIES: 'crm_activities',
   TRANSACTIONS: 'crm_transactions',
+  GOALS: 'crm_goals',
 };
 
 function uid(): string {
