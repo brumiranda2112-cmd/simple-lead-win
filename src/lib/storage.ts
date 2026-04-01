@@ -268,3 +268,33 @@ export function syncRevenueFromLeads() {
     }
   });
 }
+
+// ===== GOALS =====
+export function getGoals(): UserGoal[] {
+  return get<UserGoal[]>(BASE_KEYS.GOALS, []);
+}
+
+export function saveGoals(goals: UserGoal[]) {
+  set(BASE_KEYS.GOALS, goals);
+}
+
+export function createGoal(data: Omit<UserGoal, 'id'>): UserGoal {
+  const goals = getGoals();
+  const goal: UserGoal = { ...data, id: uid() };
+  goals.push(goal);
+  set(BASE_KEYS.GOALS, goals);
+  return goal;
+}
+
+export function updateGoal(id: string, data: Partial<UserGoal>): UserGoal | null {
+  const goals = getGoals();
+  const idx = goals.findIndex(g => g.id === id);
+  if (idx === -1) return null;
+  goals[idx] = { ...goals[idx], ...data };
+  set(BASE_KEYS.GOALS, goals);
+  return goals[idx];
+}
+
+export function deleteGoal(id: string) {
+  set(BASE_KEYS.GOALS, getGoals().filter(g => g.id !== id));
+}
