@@ -35,16 +35,42 @@ export interface Lead {
   updatedAt: string;
 }
 
+export interface Subtask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export interface TaskComment {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: string;
+}
+
 export interface Task {
   id: string;
   leadId: string;
   type: TaskType;
+  priority: TaskPriority;
   title: string;
   description: string;
   dueDate: string;
   completed: boolean;
   completedAt: string | null;
   createdAt: string;
+  subtasks?: Subtask[];
+  comments?: TaskComment[];
+}
+
+export interface UserGoal {
+  id: string;
+  userId: string;
+  userName: string;
+  target: number;
+  current: number;
+  period: string; // e.g. '2026-04'
+  type: 'revenue' | 'deals';
 }
 
 export interface Activity {
