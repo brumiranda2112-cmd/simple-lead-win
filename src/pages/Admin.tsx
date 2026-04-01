@@ -211,7 +211,10 @@ export default function Admin() {
               </p>
               <p className="text-sm text-destructive font-medium">⚠️ Isso substituirá todos os dados atuais do localStorage!</p>
               <Button onClick={() => { loadDemoData(); toast.success('Dados demo carregados! Recarregue a página.'); setTimeout(() => window.location.reload(), 1000); }}>
-                <Database className="w-4 h-4 mr-2" /> Carregar Dados Demo
+                <Database className="w-4 h-4 mr-2" /> Carregar Dados Demo (CRM)
+              </Button>
+              <Button variant="outline" className="ml-2" onClick={async () => { try { await loadWhatsAppDemoData(); toast.success('Conversas demo do WhatsApp criadas!'); } catch(e) { toast.error('Erro ao criar dados WhatsApp'); console.error(e); } }}>
+                <Database className="w-4 h-4 mr-2" /> Carregar Dados WhatsApp
               </Button>
             </CardContent>
           </Card>
