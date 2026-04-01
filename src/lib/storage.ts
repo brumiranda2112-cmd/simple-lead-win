@@ -1,4 +1,4 @@
-import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction, LeadType } from '@/types/crm';
+import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction, LeadType, UserGoal } from '@/types/crm';
 
 let _userId: string | null = null;
 
