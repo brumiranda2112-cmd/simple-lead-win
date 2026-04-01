@@ -104,13 +104,13 @@ export function createLead(data: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>): 
   return lead;
 }
 
-export function updateLead(id: string, data: Partial<Lead>): Lead | null {
+export function updateLead(id: string, data: Partial<Lead>, skipTimestamp = false): Lead | null {
   const leads = getLeads();
   const idx = leads.findIndex(l => l.id === id);
   if (idx === -1) return null;
-  leads[idx] = { ...leads[idx], ...data, updatedAt: now() };
+  leads[idx] = { ...leads[idx], ...data, ...(skipTimestamp ? {} : { updatedAt: now() }) };
   set(BASE_KEYS.LEADS, leads);
-  addActivity(id, 'lead_updated', `Lead "${leads[idx].name}" atualizado`);
+  if (!skipTimestamp) addActivity(id, 'lead_updated', `Lead "${leads[idx].name}" atualizado`);
   return leads[idx];
 }
 

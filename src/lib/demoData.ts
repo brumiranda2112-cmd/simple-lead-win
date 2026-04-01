@@ -1,4 +1,5 @@
 import { Lead, Task, Transaction, Activity, UserGoal } from '@/types/crm';
+import * as storage from '@/lib/storage';
 
 function uid() { return crypto.randomUUID(); }
 
@@ -188,31 +189,38 @@ export function generateDemoData() {
 export function loadDemoData() {
   const { leads, tasks, activities, transactions, goals } = generateDemoData();
 
-  const userId = localStorage.getItem('crm_auth_token') ? '' : '';
-  const prefix = (key: string) => {
-    // Try to find user id prefix
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k?.endsWith(':crm_leads')) {
-        return k.replace(':crm_leads', `:${key}`);
-      }
-    }
-    return key;
-  };
+  // Build ID mapping: old generated ID -> new storage ID
+  const idMap = new Map<string, string>();
 
-  // Find prefix
-  let keyPrefix = '';
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k?.endsWith(':crm_leads')) {
-      keyPrefix = k.replace('crm_leads', '');
-      break;
-    }
-  }
+  leads.forEach(l => {
+    const created = storage.createLead({
+      name: l.name, email: l.email, phone: l.phone, company: l.company,
+      area: l.area, source: l.source, responsible: l.responsible,
+      estimatedValue: l.estimatedValue, leadType: l.leadType, status: l.status,
+      notes: l.notes, nextFollowup: l.nextFollowup, wonLostReason: l.wonLostReason,
+    });
+    idMap.set(l.id, created.id);
+    // Manually update timestamps for realism
+    storage.updateLead(created.id, { createdAt: l.createdAt, updatedAt: l.updatedAt }, true);
+  });
 
-  localStorage.setItem(`${keyPrefix}crm_leads`, JSON.stringify(leads));
-  localStorage.setItem(`${keyPrefix}crm_tasks`, JSON.stringify(tasks));
-  localStorage.setItem(`${keyPrefix}crm_activities`, JSON.stringify(activities));
-  localStorage.setItem(`${keyPrefix}crm_transactions`, JSON.stringify(transactions));
-  localStorage.setItem(`${keyPrefix}crm_goals`, JSON.stringify(goals));
+  tasks.forEach(t => {
+    const mappedLeadId = idMap.get(t.leadId) || t.leadId;
+    storage.createTask({
+      leadId: mappedLeadId, type: t.type, priority: t.priority,
+      title: t.title, description: t.description, dueDate: t.dueDate,
+      subtasks: t.subtasks, comments: t.comments,
+    });
+  });
+
+  transactions.forEach(t => {
+    const mappedLeadId = t.leadId ? (idMap.get(t.leadId) || t.leadId) : undefined;
+    storage.createTransaction({
+      type: t.type, category: t.category, description: t.description,
+      value: t.value, date: t.date, leadId: mappedLeadId,
+      responsible: t.responsible, recurring: t.recurring, notes: t.notes,
+    });
+  });
+
+  storage.saveGoals(goals);
 }
