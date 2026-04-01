@@ -83,12 +83,13 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="users">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="branding">Personalização</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="quick-replies">Mensagens Rápidas</TabsTrigger>
           <TabsTrigger value="labels">Etiquetas</TabsTrigger>
+          <TabsTrigger value="demo">Dados Demo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4 mt-4">
