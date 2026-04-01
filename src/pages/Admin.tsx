@@ -200,6 +200,23 @@ export default function Admin() {
           <LabelsManager />
         </TabsContent>
 
+        <TabsContent value="demo" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Database className="w-5 h-5" /> Dados de Demonstração</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Gere dados fictícios para testar todas as funcionalidades do CRM: leads, clientes, tarefas, transações e metas.
+              </p>
+              <p className="text-sm text-destructive font-medium">⚠️ Isso substituirá todos os dados atuais do localStorage!</p>
+              <Button onClick={() => { loadDemoData(); toast.success('Dados demo carregados! Recarregue a página.'); setTimeout(() => window.location.reload(), 1000); }}>
+                <Database className="w-4 h-4 mr-2" /> Carregar Dados Demo
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
       </Tabs>
 
       {/* Edit Dialog */}
