@@ -225,3 +225,133 @@ export function loadDemoData() {
 
   storage.saveGoals(goals);
 }
+
+// ===== WhatsApp Demo Data =====
+const WHATSAPP_CONTACTS = [
+  { name: 'Carlos Mendes', phone: '5511987654321' },
+  { name: 'Ana Paula Silva', phone: '5511976543210' },
+  { name: 'Roberto Almeida', phone: '5511965432109' },
+  { name: 'Juliana Costa', phone: '5511954321098' },
+  { name: 'Fernando Oliveira', phone: '5511943210987' },
+  { name: 'Patrícia Santos', phone: '5511932109876' },
+  { name: 'Marcos Ribeiro', phone: '5511921098765' },
+  { name: 'Luciana Ferreira', phone: '5511910987654' },
+];
+
+const DEMO_CONVERSATIONS: { messages: { body: string; from_me: boolean }[] }[] = [
+  {
+    messages: [
+      { body: 'Olá, boa tarde! Vi o anúncio de vocês no Instagram', from_me: false },
+      { body: 'Boa tarde, Carlos! Tudo bem? Obrigado pelo interesse! 😊', from_me: true },
+      { body: 'Queria saber mais sobre o serviço de automação', from_me: false },
+      { body: 'Claro! Nós oferecemos automações personalizadas para empresas. Posso agendar uma demonstração?', from_me: true },
+      { body: 'Pode sim, qual horário tem disponível?', from_me: false },
+    ],
+  },
+  {
+    messages: [
+      { body: 'Oi, recebi a proposta por email', from_me: false },
+      { body: 'Oi Ana! Que bom! Teve alguma dúvida?', from_me: true },
+      { body: 'Sim, sobre o prazo de implementação', from_me: false },
+      { body: 'Normalmente levamos de 2 a 4 semanas dependendo da complexidade', from_me: true },
+      { body: 'Entendi, vou analisar e retorno até sexta', from_me: false },
+      { body: 'Perfeito! Fico no aguardo 🙏', from_me: true },
+    ],
+  },
+  {
+    messages: [
+      { body: 'Bom dia! O sistema está apresentando um erro', from_me: false },
+      { body: 'Bom dia Roberto! Pode me descrever o erro?', from_me: true },
+      { body: 'Quando tento gerar o relatório aparece tela branca', from_me: false },
+      { body: 'Vou verificar agora mesmo. Um momento por favor', from_me: true },
+      { body: 'Ok, aguardo', from_me: false },
+      { body: 'Pronto! O problema era no cache do navegador. Tente limpar e acessar novamente', from_me: true },
+      { body: 'Funcionou! Obrigado pelo suporte rápido 👍', from_me: false },
+    ],
+  },
+  {
+    messages: [
+      { body: 'Boa tarde, gostaria de contratar o plano empresarial', from_me: false },
+      { body: 'Boa tarde Juliana! Excelente escolha! Vou preparar a proposta', from_me: true },
+      { body: 'Quanto tempo leva?', from_me: false },
+      { body: 'Envio ainda hoje! 🚀', from_me: true },
+    ],
+  },
+  {
+    messages: [
+      { body: 'Ei, tudo certo com o projeto?', from_me: false },
+      { body: 'Tudo sim Fernando! Estamos na fase de testes', from_me: true },
+      { body: 'Ótimo, quando posso ver uma prévia?', from_me: false },
+    ],
+  },
+  {
+    messages: [
+      { body: 'Olá! Indicação do Carlos Mendes', from_me: false },
+      { body: 'Olá Patrícia! O Carlos é um ótimo cliente nosso 😊 Como posso ajudar?', from_me: true },
+    ],
+  },
+  {
+    messages: [
+      { body: 'Preciso renovar meu contrato', from_me: false },
+      { body: 'Claro Marcos! Vou verificar as condições de renovação', from_me: true },
+      { body: 'Tem desconto pra renovação?', from_me: false },
+      { body: 'Sim! Oferecemos 15% de desconto na renovação anual', from_me: true },
+      { body: 'Fechado! Pode mandar o contrato', from_me: false },
+    ],
+  },
+  {
+    messages: [
+      { body: 'Boa noite! Vi que vocês trabalham com IA', from_me: false },
+      { body: 'Boa noite Luciana! Sim, temos soluções com agentes de IA. Quer saber mais?', from_me: true },
+    ],
+  },
+];
+
+export async function loadWhatsAppDemoData() {
+  const now = new Date();
+
+  for (let i = 0; i < WHATSAPP_CONTACTS.length; i++) {
+    const contact = WHATSAPP_CONTACTS[i];
+    const conv = DEMO_CONVERSATIONS[i];
+    const lastMsg = conv.messages[conv.messages.length - 1];
+    const minutesAgo = (WHATSAPP_CONTACTS.length - i) * 45; // stagger conversations
+    const lastMessageAt = new Date(now.getTime() - minutesAgo * 60000).toISOString();
+
+    // Insert conversation
+    const { data: convData, error: convError } = await supabase
+      .from('whatsapp_conversations')
+      .upsert({
+        phone: contact.phone,
+        contact_name: contact.name,
+        last_message: lastMsg.body,
+        last_message_at: lastMessageAt,
+        unread_count: lastMsg.from_me ? 0 : Math.floor(Math.random() * 3) + 1,
+        status: i < 6 ? 'active' : 'finished',
+        priority: i === 0 ? 'high' : i === 2 ? 'urgent' : null,
+      }, { onConflict: 'phone' })
+      .select()
+      .single();
+
+    if (convError || !convData) {
+      console.error('Error creating demo conversation:', convError);
+      continue;
+    }
+
+    // Insert messages
+    const messageRows = conv.messages.map((msg, idx) => {
+      const msgTime = new Date(now.getTime() - minutesAgo * 60000 + (idx - conv.messages.length) * 120000);
+      return {
+        conversation_id: convData.id,
+        phone: contact.phone,
+        body: msg.body,
+        from_me: msg.from_me,
+        type: 'text',
+        status: msg.from_me ? 'sent' : 'received',
+        timestamp: msgTime.toISOString(),
+        message_id: `demo_${contact.phone}_${idx}`,
+      };
+    });
+
+    await supabase.from('whatsapp_messages').upsert(messageRows, { onConflict: 'message_id' });
+  }
+}
