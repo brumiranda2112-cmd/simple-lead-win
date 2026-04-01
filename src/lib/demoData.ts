@@ -15,7 +15,7 @@ function randomDatetime(daysAgo: number, daysAhead = 0): string {
   return d.toISOString().slice(0, 16);
 }
 
-function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+function pick<T>(arr: readonly T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
 const NAMES = ['TechFlow Solutions', 'Digital Prime', 'InovaFlex Ltda', 'Apex Marketing', 'CloudBase Systems', 'DataVision AI', 'NetScale Corp', 'SmartPath Labs', 'GreenEnergy SA', 'AutoPilot Sistemas', 'Vortex Digital', 'SkyBridge Tech', 'NovaMente AI', 'PulseTech', 'QuantumLeap', 'ByteForge', 'CodeCraft Pro', 'AgileSoft', 'BluePrint Digital', 'MaxAutomation'];
 const RESPONSIBLES = ['Bruno', 'Rafael', 'Mariana', 'Lucas'];
