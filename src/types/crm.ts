@@ -198,6 +198,20 @@ export const TASK_TYPE_LABELS: Record<TaskType, string> = {
   mensagem: 'Mensagem',
 };
 
+export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
+  baixa: 'Baixa',
+  media: 'Média',
+  alta: 'Alta',
+  urgente: 'Urgente',
+};
+
+export const TASK_PRIORITY_COLORS: Record<TaskPriority, string> = {
+  baixa: 'text-blue-400 bg-blue-400/10 border-blue-400/30',
+  media: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
+  alta: 'text-orange-400 bg-orange-400/10 border-orange-400/30',
+  urgente: 'text-red-400 bg-red-400/10 border-red-400/30',
+};
+
 // Lead pipeline columns
 export const LEAD_PIPELINE_COLUMNS: { status: LeadPipelineStatus; label: string; color: string }[] = [
   { status: 'lead_qualificado', label: 'Lead Qualificado', color: 'hsl(25, 95%, 53%)' },
