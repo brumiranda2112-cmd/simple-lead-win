@@ -1,14 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Lead, LeadArea, LeadSource, LeadStatus, LeadType, LeadProject, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_PIPELINE_STATUS_LABELS, CLIENT_PIPELINE_STATUS_LABELS } from '@/types/crm';
+import { useState } from 'react';
+import { Lead, LeadArea, LeadSource, LeadStatus, LeadResponsible, LeadType, LEAD_AREA_LABELS, LEAD_SOURCE_LABELS, LEAD_PIPELINE_STATUS_LABELS, CLIENT_PIPELINE_STATUS_LABELS, LEAD_RESPONSIBLE_LABELS } from '@/types/crm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Trash2 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { useProfiles } from '@/hooks/useProfiles';
 
 interface Props {
   open: boolean;
@@ -19,7 +16,6 @@ interface Props {
 }
 
 export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = 'lead' }: Props) {
-  const { profiles } = useProfiles();
   const [form, setForm] = useState({
     name: lead?.name || '',
     email: lead?.email || '',
@@ -35,28 +31,7 @@ export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = '
     nextFollowup: lead?.nextFollowup || null,
     wonLostReason: lead?.wonLostReason || '',
   });
-  const [projects, setProjects] = useState<LeadProject[]>(lead?.projects || []);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    setForm({
-      name: lead?.name || '',
-      email: lead?.email || '',
-      phone: lead?.phone || '',
-      company: lead?.company || '',
-      area: lead?.area || 'agentes_ia' as LeadArea,
-      source: lead?.source || 'indicacao' as LeadSource,
-      responsible: lead?.responsible || '',
-      estimatedValue: lead?.estimatedValue || 0,
-      leadType: lead?.leadType || defaultLeadType,
-      status: lead?.status || (defaultLeadType === 'cliente' ? 'cliente_novo' : 'lead_qualificado') as LeadStatus,
-      notes: lead?.notes || '',
-      nextFollowup: lead?.nextFollowup || null,
-      wonLostReason: lead?.wonLostReason || '',
-    });
-    setProjects(lead?.projects || []);
-    setError('');
-  }, [lead, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,29 +39,11 @@ export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = '
       setError('Nome e telefone são obrigatórios');
       return;
     }
-    onSave({ ...form, projects });
+    onSave(form);
     onOpenChange(false);
   };
 
   const update = (field: string, value: unknown) => setForm(prev => ({ ...prev, [field]: value }));
-
-  const addProject = () => {
-    setProjects(prev => [...prev, {
-      id: crypto.randomUUID(),
-      name: '',
-      area: 'agentes_ia' as LeadArea,
-      estimatedValue: 0,
-      notes: '',
-    }]);
-  };
-
-  const updateProject = (id: string, field: keyof LeadProject, value: unknown) => {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
-  };
-
-  const removeProject = (id: string) => {
-    setProjects(prev => prev.filter(p => p.id !== id));
-  };
 
   const statusLabels = form.leadType === 'cliente' ? CLIENT_PIPELINE_STATUS_LABELS : LEAD_PIPELINE_STATUS_LABELS;
   const entityLabel = form.leadType === 'cliente' ? 'Cliente' : 'Lead';
@@ -124,8 +81,8 @@ export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = '
               <Select value={form.responsible} onValueChange={v => update('responsible', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {profiles.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  {Object.entries(LEAD_RESPONSIBLE_LABELS).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -180,53 +137,6 @@ export function LeadForm({ open, onOpenChange, lead, onSave, defaultLeadType = '
             <Label>Observações</Label>
             <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} placeholder="Notas..." rows={3} />
           </div>
-
-          {form.leadType === 'cliente' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold">Trabalhos / Projetos</Label>
-                <Button type="button" size="sm" variant="outline" onClick={addProject}>
-                  <Plus className="w-3 h-3 mr-1" />Adicionar
-                </Button>
-              </div>
-              {projects.length === 0 && (
-                <p className="text-xs text-muted-foreground">Nenhum trabalho adicionado. Use o botão acima para adicionar projetos a este cliente.</p>
-              )}
-              {projects.map((proj, i) => (
-                <Card key={proj.id} className="p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground">Trabalho {i + 1}</span>
-                    <Button type="button" size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeProject(proj.id)}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <Input
-                    placeholder="Nome do trabalho"
-                    value={proj.name}
-                    onChange={e => updateProject(proj.id, 'name', e.target.value)}
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Select value={proj.area} onValueChange={v => updateProject(proj.id, 'area', v)}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(LEAD_AREA_LABELS).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number"
-                      placeholder="Valor R$"
-                      className="h-8 text-xs"
-                      value={proj.estimatedValue}
-                      onChange={e => updateProject(proj.id, 'estimatedValue', Number(e.target.value))}
-                    />
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-
           {error && <p className="text-sm text-destructive">{error}</p>}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

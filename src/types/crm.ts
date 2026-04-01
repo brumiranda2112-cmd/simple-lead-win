@@ -3,14 +3,6 @@ export type LeadSource = 'indicacao' | 'google' | 'instagram' | 'site' | 'linked
 export type LeadResponsible = string;
 export type TaskType = 'followup' | 'reuniao' | 'proposta' | 'diagnostico' | 'lembrete' | 'mensagem';
 
-export interface LeadProject {
-  id: string;
-  name: string;
-  area: LeadArea;
-  estimatedValue: number;
-  notes?: string;
-}
-
 // Lead pipeline statuses (prospecting)
 export type LeadPipelineStatus = 'lead_qualificado' | 'call_diagnostico' | 'proposta_implementacao' | 'call_fechamento' | 'proposta_honorarios' | 'fechado' | 'followup_d1' | 'followup_d2' | 'followup_d3' | 'followup_d4' | 'followup_d5' | 'followup_d6' | 'followup_d7' | 'followup_d8' | 'followup_d9' | 'followup_d10';
 
@@ -40,7 +32,6 @@ export interface Lead {
   wonLostReason: string;
   createdAt: string;
   updatedAt: string;
-  projects?: LeadProject[];
 }
 
 export interface Task {

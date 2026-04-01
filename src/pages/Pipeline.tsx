@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Lead, PIPELINE_COLUMNS, LEAD_AREA_LABELS, CLIENT_PIPELINE_STATUS_LABELS, LeadArea, ClientPipelineStatus } from '@/types/crm';
+import { Lead, PIPELINE_COLUMNS, LEAD_AREA_LABELS, LEAD_RESPONSIBLE_LABELS, CLIENT_PIPELINE_STATUS_LABELS, LeadArea, LeadResponsible, ClientPipelineStatus } from '@/types/crm';
 import * as storage from '@/lib/storage';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,15 +11,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadForm } from '@/components/LeadForm';
 import { LeadDetails } from '@/components/LeadDetails';
-import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Eye, Pencil, Trash2, Kanban, List, Briefcase } from 'lucide-react';
+import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Eye, Pencil, Trash2, Kanban, List } from 'lucide-react';
 import { openWhatsApp } from '@/lib/whatsapp';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useProfiles } from '@/hooks/useProfiles';
 
 export default function Pipeline() {
-  const { getProfileName } = useProfiles();
   const [leads, setLeads] = useState<Lead[]>(storage.getLeadsByType('cliente'));
   const [formOpen, setFormOpen] = useState(false);
   const [editLead, setEditLead] = useState<Lead | null>(null);
@@ -84,10 +82,7 @@ export default function Pipeline() {
   };
 
   const formatCurrency = (v: number) => v ? `R$ ${(v / 1000).toFixed(0)}k` : '';
-  const colTotal = (items: Lead[]) => items.reduce((s, l) => {
-    const projectsTotal = (l.projects || []).reduce((ps, p) => ps + (p.estimatedValue || 0), 0);
-    return s + (l.estimatedValue || 0) + projectsTotal;
-  }, 0);
+  const colTotal = (items: Lead[]) => items.reduce((s, l) => s + (l.estimatedValue || 0), 0);
 
   return (
     <div className="space-y-4">
@@ -141,23 +136,12 @@ export default function Pipeline() {
                                     )}
                                   </div>
                                   <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                                    <User className="w-3 h-3" />{getProfileName(lead.responsible)}
+                                    <User className="w-3 h-3" />{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}
                                   </div>
                                   <div className="flex items-center justify-between mt-2">
                                     {lead.estimatedValue > 0 && <span className="text-xs flex items-center gap-1 text-primary"><DollarSign className="w-3 h-3" />{formatCurrency(lead.estimatedValue)}</span>}
                                     <Badge variant="outline" className="text-[10px]">{LEAD_AREA_LABELS[lead.area as LeadArea]}</Badge>
                                   </div>
-                                  {lead.projects && lead.projects.length > 0 && (
-                                    <div className="mt-2 space-y-1">
-                                      {lead.projects.map(p => (
-                                        <div key={p.id} className="flex items-center gap-1 text-[10px] text-muted-foreground bg-secondary/40 rounded px-1.5 py-0.5">
-                                          <Briefcase className="w-2.5 h-2.5 shrink-0" />
-                                          <span className="truncate">{p.name || 'Sem nome'}</span>
-                                          {p.estimatedValue > 0 && <span className="ml-auto text-primary shrink-0">{formatCurrency(p.estimatedValue)}</span>}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
                                   {lead.nextFollowup && (
                                     <div className="flex items-center gap-1 mt-1.5 text-[10px] text-muted-foreground">
                                       <Clock className="w-3 h-3" />{new Date(lead.nextFollowup).toLocaleDateString('pt-BR')}
@@ -211,7 +195,7 @@ export default function Pipeline() {
                 ) : filtered.map(lead => (
                   <TableRow key={lead.id} className="hover:bg-secondary/30 cursor-pointer" onClick={() => setDetailLead(lead)}>
                     <TableCell className="font-medium">{lead.name}</TableCell>
-                    <TableCell><Badge variant="outline">{getProfileName(lead.responsible)}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{LEAD_RESPONSIBLE_LABELS[lead.responsible as LeadResponsible] || '-'}</Badge></TableCell>
                     <TableCell>{lead.phone}</TableCell>
                     <TableCell><Badge variant="outline">{LEAD_AREA_LABELS[lead.area as LeadArea]}</Badge></TableCell>
                     <TableCell><Badge variant="secondary">{CLIENT_PIPELINE_STATUS_LABELS[lead.status as ClientPipelineStatus] || lead.status}</Badge></TableCell>
