@@ -149,7 +149,12 @@ export function convertLeadToClient(id: string): Lead | null {
 
 // ===== TASKS =====
 export function getTasks(): Task[] {
-  return get<Task[]>(BASE_KEYS.TASKS, []);
+  return get<Task[]>(BASE_KEYS.TASKS, []).map(t => ({
+    ...t,
+    priority: t.priority || 'media',
+    subtasks: t.subtasks || [],
+    comments: t.comments || [],
+  }));
 }
 
 export function getTask(id: string): Task | undefined {
