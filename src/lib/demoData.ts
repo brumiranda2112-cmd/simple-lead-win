@@ -189,29 +189,35 @@ export function generateDemoData() {
 export function loadDemoData() {
   const { leads, tasks, activities, transactions, goals } = generateDemoData();
 
-  // Use storage functions to properly save with user prefix
-  // First clear existing data by saving empty, then save demo data
+  // Build ID mapping: old generated ID -> new storage ID
+  const idMap = new Map<string, string>();
+
   leads.forEach(l => {
-    storage.createLead({
+    const created = storage.createLead({
       name: l.name, email: l.email, phone: l.phone, company: l.company,
       area: l.area, source: l.source, responsible: l.responsible,
       estimatedValue: l.estimatedValue, leadType: l.leadType, status: l.status,
       notes: l.notes, nextFollowup: l.nextFollowup, wonLostReason: l.wonLostReason,
     });
+    idMap.set(l.id, created.id);
+    // Manually update timestamps for realism
+    storage.updateLead(created.id, { createdAt: l.createdAt, updatedAt: l.updatedAt });
   });
 
   tasks.forEach(t => {
+    const mappedLeadId = idMap.get(t.leadId) || t.leadId;
     storage.createTask({
-      leadId: t.leadId, type: t.type, priority: t.priority,
+      leadId: mappedLeadId, type: t.type, priority: t.priority,
       title: t.title, description: t.description, dueDate: t.dueDate,
       subtasks: t.subtasks, comments: t.comments,
     });
   });
 
   transactions.forEach(t => {
+    const mappedLeadId = t.leadId ? (idMap.get(t.leadId) || t.leadId) : undefined;
     storage.createTransaction({
       type: t.type, category: t.category, description: t.description,
-      value: t.value, date: t.date, leadId: t.leadId,
+      value: t.value, date: t.date, leadId: mappedLeadId,
       responsible: t.responsible, recurring: t.recurring, notes: t.notes,
     });
   });
