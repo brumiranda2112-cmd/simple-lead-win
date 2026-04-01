@@ -189,31 +189,32 @@ export function generateDemoData() {
 export function loadDemoData() {
   const { leads, tasks, activities, transactions, goals } = generateDemoData();
 
-  const userId = localStorage.getItem('crm_auth_token') ? '' : '';
-  const prefix = (key: string) => {
-    // Try to find user id prefix
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k?.endsWith(':crm_leads')) {
-        return k.replace(':crm_leads', `:${key}`);
-      }
-    }
-    return key;
-  };
+  // Use storage functions to properly save with user prefix
+  // First clear existing data by saving empty, then save demo data
+  leads.forEach(l => {
+    storage.createLead({
+      name: l.name, email: l.email, phone: l.phone, company: l.company,
+      area: l.area, source: l.source, responsible: l.responsible,
+      estimatedValue: l.estimatedValue, leadType: l.leadType, status: l.status,
+      notes: l.notes, nextFollowup: l.nextFollowup, wonLostReason: l.wonLostReason,
+    });
+  });
 
-  // Find prefix
-  let keyPrefix = '';
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k?.endsWith(':crm_leads')) {
-      keyPrefix = k.replace('crm_leads', '');
-      break;
-    }
-  }
+  tasks.forEach(t => {
+    storage.createTask({
+      leadId: t.leadId, type: t.type, priority: t.priority,
+      title: t.title, description: t.description, dueDate: t.dueDate,
+      subtasks: t.subtasks, comments: t.comments,
+    });
+  });
 
-  localStorage.setItem(`${keyPrefix}crm_leads`, JSON.stringify(leads));
-  localStorage.setItem(`${keyPrefix}crm_tasks`, JSON.stringify(tasks));
-  localStorage.setItem(`${keyPrefix}crm_activities`, JSON.stringify(activities));
-  localStorage.setItem(`${keyPrefix}crm_transactions`, JSON.stringify(transactions));
-  localStorage.setItem(`${keyPrefix}crm_goals`, JSON.stringify(goals));
+  transactions.forEach(t => {
+    storage.createTransaction({
+      type: t.type, category: t.category, description: t.description,
+      value: t.value, date: t.date, leadId: t.leadId,
+      responsible: t.responsible, recurring: t.recurring, notes: t.notes,
+    });
+  });
+
+  storage.saveGoals(goals);
 }
