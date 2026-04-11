@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadForm } from '@/components/LeadForm';
 import { LeadDetails } from '@/components/LeadDetails';
-import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Eye, Pencil, Trash2, Kanban, List } from 'lucide-react';
+import { TaskForm } from '@/components/TaskForm';
+import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Eye, Pencil, Trash2, Kanban, List, CheckSquare } from 'lucide-react';
 const openWhatsApp = (phone: string) => window.open(`https://wa.me/${phone.replace(/\D/g, '')}`, '_blank');
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -27,6 +28,7 @@ export default function Pipeline() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [taskLeadId, setTaskLeadId] = useState<string | null>(null);
 
   const refresh = useCallback(() => setLeads(storage.getLeadsByType('cliente')), []);
 
