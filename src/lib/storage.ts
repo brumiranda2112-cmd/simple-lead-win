@@ -1,4 +1,4 @@
-import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction, LeadType, UserGoal } from '@/types/crm';
+import { Lead, Task, Activity, CrmUser, LeadStatus, Transaction, LeadType, UserGoal, Contract, Installment } from '@/types/crm';
 
 let _userId: string | null = null;
 
@@ -19,6 +19,7 @@ const BASE_KEYS = {
   ACTIVITIES: 'crm_activities',
   TRANSACTIONS: 'crm_transactions',
   GOALS: 'crm_goals',
+  CONTRACTS: 'crm_contracts',
 };
 
 function uid(): string {
