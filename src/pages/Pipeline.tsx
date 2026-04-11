@@ -254,6 +254,10 @@ export default function Pipeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {taskLeadId && (
+        <TaskForm open={!!taskLeadId} onOpenChange={o => { if (!o) setTaskLeadId(null); }} leadId={taskLeadId} onSave={refresh} />
+      )}
     </div>
   );
 }
