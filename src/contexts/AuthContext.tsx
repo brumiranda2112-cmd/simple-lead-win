@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { setStorageUserId } from '@/lib/storage';
+import { setStorageUserId, clearAllData } from '@/lib/storage';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface UserProfile {
@@ -67,6 +67,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (sess?.user) {
         setStorageUserId(sess.user.id);
+        // One-time data wipe
+        if (!localStorage.getItem('crm_data_cleared_v1')) {
+          clearAllData();
+          localStorage.setItem('crm_data_cleared_v1', '1');
+        }
         setTimeout(() => fetchUserData(sess.user.id), 0);
       } else {
         setStorageUserId(null);

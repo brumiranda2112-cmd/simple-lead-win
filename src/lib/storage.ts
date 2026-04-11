@@ -298,3 +298,9 @@ export function updateGoal(id: string, data: Partial<UserGoal>): UserGoal | null
 export function deleteGoal(id: string) {
   set(BASE_KEYS.GOALS, getGoals().filter(g => g.id !== id));
 }
+
+export function clearAllData() {
+  Object.values(BASE_KEYS).forEach(key => {
+    localStorage.removeItem(prefixedKey(key));
+  });
+}
