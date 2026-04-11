@@ -1,4 +1,4 @@
-import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut, DollarSign, Shield, CalendarDays, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut, DollarSign, Shield, CalendarDays } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getOverdueTasks, getTodayTasks } from '@/lib/storage';
