@@ -25,7 +25,7 @@ const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
   { title: 'Clientes', url: '/pipeline', icon: Kanban, permission: 'pipeline.view' },
   { title: 'Leads', url: '/leads', icon: Users, permission: 'leads.view' },
-  { title: 'WhatsApp', url: '/whatsapp', icon: MessageCircle, permission: 'whatsapp.view' },
+  
   { title: 'Tarefas', url: '/tasks', icon: CheckSquare, permission: 'tasks.view' },
   { title: 'Financeiro', url: '/financeiro', icon: DollarSign, permission: 'financeiro.view' },
   { title: 'Agendamentos', url: '/agendamentos', icon: CalendarDays, permission: 'agendamentos.view' },
