@@ -305,3 +305,85 @@ export function clearAllData() {
     localStorage.removeItem(prefixedKey(key));
   });
 }
+
+// ===== CONTRACTS =====
+export function getContracts(): Contract[] {
+  return get<Contract[]>(BASE_KEYS.CONTRACTS, []);
+}
+
+export function getContractsByLead(leadId: string): Contract[] {
+  return getContracts().filter(c => c.leadId === leadId);
+}
+
+export function getContract(id: string): Contract | null {
+  return getContracts().find(c => c.id === id) || null;
+}
+
+export function createContract(data: Omit<Contract, 'id' | 'createdAt' | 'updatedAt'>): Contract {
+  const contracts = getContracts();
+  const contract: Contract = { ...data, id: uid(), createdAt: now(), updatedAt: now() };
+  contracts.push(contract);
+  set(BASE_KEYS.CONTRACTS, contracts);
+  const lead = getLead(data.leadId);
+  if (lead) addActivity(data.leadId, 'lead_updated', `Contrato "${data.title}" criado - R$ ${data.totalValue.toLocaleString('pt-BR')}`);
+  return contract;
+}
+
+export function updateContract(id: string, data: Partial<Contract>): Contract | null {
+  const contracts = getContracts();
+  const idx = contracts.findIndex(c => c.id === id);
+  if (idx === -1) return null;
+  contracts[idx] = { ...contracts[idx], ...data, updatedAt: now() };
+  set(BASE_KEYS.CONTRACTS, contracts);
+  return contracts[idx];
+}
+
+export function deleteContract(id: string) {
+  set(BASE_KEYS.CONTRACTS, getContracts().filter(c => c.id !== id));
+}
+
+export function markInstallmentPaid(contractId: string, installmentId: string): { contract: Contract; transaction: Transaction } | null {
+  const contract = getContract(contractId);
+  if (!contract) return null;
+  const inst = contract.installments.find(i => i.id === installmentId);
+  if (!inst || inst.status === 'pago') return null;
+
+  const lead = getLead(contract.leadId);
+  const txn = createTransaction({
+    type: 'receita',
+    category: 'contrato',
+    description: `Parcela: ${contract.title} - ${inst.description}`,
+    value: inst.value,
+    date: now().split('T')[0],
+    leadId: contract.leadId,
+    responsible: lead?.responsible || '',
+    recurring: false,
+    notes: `Contrato: ${contract.title}`,
+  });
+
+  inst.status = 'pago';
+  inst.paidAt = now();
+  inst.transactionId = txn.id;
+
+  updateContract(contractId, { installments: contract.installments });
+  addActivity(contract.leadId, 'lead_updated', `Parcela "${inst.description}" paga - R$ ${inst.value.toLocaleString('pt-BR')}`);
+
+  return { contract, transaction: txn };
+}
+
+export function markInstallmentUnpaid(contractId: string, installmentId: string): Contract | null {
+  const contract = getContract(contractId);
+  if (!contract) return null;
+  const inst = contract.installments.find(i => i.id === installmentId);
+  if (!inst || inst.status !== 'pago') return null;
+
+  // Remove associated transaction
+  if (inst.transactionId) deleteTransaction(inst.transactionId);
+
+  inst.status = 'pendente';
+  inst.paidAt = null;
+  inst.transactionId = null;
+
+  updateContract(contractId, { installments: contract.installments });
+  return contract;
+}
