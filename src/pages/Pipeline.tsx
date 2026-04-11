@@ -132,6 +132,9 @@ export default function Pipeline() {
                                       <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setEditLead(lead); setFormOpen(true); }} title="Editar">
                                         <Pencil className="w-3 h-3" />
                                       </Button>
+                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={e => { e.stopPropagation(); setDeleteId(lead.id); }} title="Excluir">
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
