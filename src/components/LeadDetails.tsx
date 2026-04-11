@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Phone, Mail, Building2, Clock, DollarSign, FileText, ArrowRight, Plus, CheckCircle, User, MessageCircle } from 'lucide-react';
 import { TaskForm } from '@/components/TaskForm';
-import { openWhatsApp } from '@/lib/whatsapp';
+const openWhatsApp = (phone: string) => window.open(`https://wa.me/${phone.replace(/\D/g, '')}`, '_blank');
 import { useState } from 'react';
 
 interface Props {

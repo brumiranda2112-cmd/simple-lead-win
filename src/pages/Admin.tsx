@@ -13,9 +13,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldAlert, Loader2, Lock } from 'lucide-react';
-import WhatsAppConnection from '@/components/admin/WhatsAppConnection';
-import QuickRepliesManager from '@/components/admin/QuickRepliesManager';
-import LabelsManager from '@/components/admin/LabelsManager';
 import BrandingManager from '@/components/admin/BrandingManager';
 import UserPermissionsManager from '@/components/admin/UserPermissionsManager';
 
@@ -86,10 +83,6 @@ export default function Admin() {
         <TabsList className="flex-wrap">
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="branding">Personalização</TabsTrigger>
-          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-          <TabsTrigger value="quick-replies">Mensagens Rápidas</TabsTrigger>
-          <TabsTrigger value="labels">Etiquetas</TabsTrigger>
-          
         </TabsList>
 
         <TabsContent value="users" className="space-y-4 mt-4">
@@ -188,17 +181,6 @@ export default function Admin() {
           <BrandingManager />
         </TabsContent>
 
-        <TabsContent value="whatsapp" className="mt-4">
-          <WhatsAppConnection />
-        </TabsContent>
-
-        <TabsContent value="quick-replies" className="mt-4">
-          <QuickRepliesManager />
-        </TabsContent>
-
-        <TabsContent value="labels" className="mt-4">
-          <LabelsManager />
-        </TabsContent>
 
 
       </Tabs>
