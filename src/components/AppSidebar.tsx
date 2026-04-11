@@ -1,10 +1,8 @@
-import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut, DollarSign, Shield, CalendarDays, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, Kanban, Users, CheckSquare, LogOut, DollarSign, Shield, CalendarDays } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getOverdueTasks, getTodayTasks } from '@/lib/storage';
-import { getTotalUnread } from '@/lib/whatsappService';
 import iconKhronos from '@/assets/icon-khronos.png';
-import { useEffect, useState } from 'react';
 import { useBranding } from '@/contexts/BrandingContext';
 import { useMyPermissions } from '@/hooks/usePermissions';
 import {
@@ -25,7 +23,6 @@ const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
   { title: 'Clientes', url: '/pipeline', icon: Kanban, permission: 'pipeline.view' },
   { title: 'Leads', url: '/leads', icon: Users, permission: 'leads.view' },
-  { title: 'WhatsApp', url: '/whatsapp', icon: MessageCircle, permission: 'whatsapp.view' },
   { title: 'Tarefas', url: '/tasks', icon: CheckSquare, permission: 'tasks.view' },
   { title: 'Financeiro', url: '/financeiro', icon: DollarSign, permission: 'financeiro.view' },
   { title: 'Agendamentos', url: '/agendamentos', icon: CalendarDays, permission: 'agendamentos.view' },
@@ -39,14 +36,7 @@ export function AppSidebar() {
   const { branding } = useBranding();
   const { hasPermission } = useMyPermissions();
   const pendingCount = getOverdueTasks().length + getTodayTasks().length;
-  const [whatsappUnread, setWhatsappUnread] = useState(0);
   const visibleItems = navItems.filter(item => isAdmin || hasPermission(item.permission));
-
-  useEffect(() => {
-    getTotalUnread().then(setWhatsappUnread);
-    const interval = setInterval(() => getTotalUnread().then(setWhatsappUnread), 15000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <Sidebar collapsible="icon">
@@ -74,11 +64,6 @@ export function AppSidebar() {
                           {item.title === 'Tarefas' && pendingCount > 0 && (
                             <Badge variant="destructive" className="ml-2 text-[10px] h-5 min-w-5 flex items-center justify-center">
                               {pendingCount}
-                            </Badge>
-                          )}
-                          {item.title === 'WhatsApp' && whatsappUnread > 0 && (
-                            <Badge className="ml-2 text-[10px] h-5 min-w-5 flex items-center justify-center bg-emerald-600 text-primary-foreground">
-                              {whatsappUnread}
                             </Badge>
                           )}
                         </span>
