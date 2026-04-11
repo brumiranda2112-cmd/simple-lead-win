@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadForm } from '@/components/LeadForm';
 import { LeadDetails } from '@/components/LeadDetails';
-import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Eye, Pencil, Trash2, Kanban, List } from 'lucide-react';
+import { TaskForm } from '@/components/TaskForm';
+import { Plus, Phone, DollarSign, Clock, User, MessageCircle, Search, Eye, Pencil, Trash2, Kanban, List, CheckSquare } from 'lucide-react';
 const openWhatsApp = (phone: string) => window.open(`https://wa.me/${phone.replace(/\D/g, '')}`, '_blank');
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -27,6 +28,7 @@ export default function Pipeline() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [taskLeadId, setTaskLeadId] = useState<string | null>(null);
 
   const refresh = useCallback(() => setLeads(storage.getLeadsByType('cliente')), []);
 
@@ -123,9 +125,14 @@ export default function Pipeline() {
                                   onClick={() => setDetailLead(lead)}>
                                   <div className="flex items-center justify-between">
                                     <p className="font-medium text-sm truncate flex-1">{lead.name}</p>
-                                    <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={e => { e.stopPropagation(); setEditLead(lead); setFormOpen(true); }}>
-                                      <Pencil className="w-3 h-3" />
-                                    </Button>
+                                    <div className="flex opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setTaskLeadId(lead.id); }} title="Nova Tarefa">
+                                        <CheckSquare className="w-3 h-3" />
+                                      </Button>
+                                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setEditLead(lead); setFormOpen(true); }} title="Editar">
+                                        <Pencil className="w-3 h-3" />
+                                      </Button>
+                                    </div>
                                   </div>
                                   <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                                     <Phone className="w-3 h-3" />{lead.phone}
@@ -247,6 +254,10 @@ export default function Pipeline() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {taskLeadId && (
+        <TaskForm open={!!taskLeadId} onOpenChange={o => { if (!o) setTaskLeadId(null); }} leadId={taskLeadId} onSave={refresh} />
+      )}
     </div>
   );
 }

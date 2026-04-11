@@ -101,6 +101,43 @@ export interface Transaction {
   createdAt: string;
 }
 
+export type InstallmentStatus = 'pendente' | 'pago' | 'atrasado' | 'cancelado';
+
+export interface Installment {
+  id: string;
+  description: string;
+  value: number;
+  dueDate: string;
+  status: InstallmentStatus;
+  paidAt: string | null;
+  transactionId: string | null; // links to Transaction when paid
+}
+
+export interface Contract {
+  id: string;
+  leadId: string;
+  title: string;
+  totalValue: number;
+  installments: Installment[];
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const INSTALLMENT_STATUS_LABELS: Record<InstallmentStatus, string> = {
+  pendente: 'Pendente',
+  pago: 'Pago',
+  atrasado: 'Atrasado',
+  cancelado: 'Cancelado',
+};
+
+export const INSTALLMENT_STATUS_COLORS: Record<InstallmentStatus, string> = {
+  pendente: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
+  pago: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30',
+  atrasado: 'text-red-400 bg-red-400/10 border-red-400/30',
+  cancelado: 'text-muted-foreground bg-muted/10 border-muted/30',
+};
+
 export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   salarios: 'Salários',
   ferramentas: 'Ferramentas & Software',
