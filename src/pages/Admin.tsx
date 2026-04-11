@@ -15,8 +15,6 @@ import { toast } from 'sonner';
 import { UserPlus, Shield, Pencil, Trash2, KeyRound, Users, ShieldCheck, ShieldAlert, Loader2, Lock } from 'lucide-react';
 import BrandingManager from '@/components/admin/BrandingManager';
 import UserPermissionsManager from '@/components/admin/UserPermissionsManager';
-import BrandingManager from '@/components/admin/BrandingManager';
-import UserPermissionsManager from '@/components/admin/UserPermissionsManager';
 
 interface UserWithRole {
   id: string;
