@@ -125,9 +125,14 @@ export default function Pipeline() {
                                   onClick={() => setDetailLead(lead)}>
                                   <div className="flex items-center justify-between">
                                     <p className="font-medium text-sm truncate flex-1">{lead.name}</p>
-                                    <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={e => { e.stopPropagation(); setEditLead(lead); setFormOpen(true); }}>
-                                      <Pencil className="w-3 h-3" />
-                                    </Button>
+                                    <div className="flex opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setTaskLeadId(lead.id); }} title="Nova Tarefa">
+                                        <CheckSquare className="w-3 h-3" />
+                                      </Button>
+                                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={e => { e.stopPropagation(); setEditLead(lead); setFormOpen(true); }} title="Editar">
+                                        <Pencil className="w-3 h-3" />
+                                      </Button>
+                                    </div>
                                   </div>
                                   <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                                     <Phone className="w-3 h-3" />{lead.phone}
